@@ -21,13 +21,8 @@ public class Main {
                 }
             }
         }
-        catch(Exception e){
+        catch(Exception e) {
             System.out.println("Error:" + e.getMessage());
         }
-
-
-
-
-
     }
 }
