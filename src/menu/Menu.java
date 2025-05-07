@@ -68,6 +68,10 @@ public class Menu {
         else{
             System.out.println("Please enter a valid choice. Try again.");
         }
+
+    }
+    catch(Exception e){
+        System.out.println("Error:" + e.getMessage());
     }
     }
     private void showCompanyMenu(){
