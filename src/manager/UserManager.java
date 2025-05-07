@@ -1,5 +1,6 @@
 package manager;
 
+import menu.Menu;
 import model.User;
 import model.Individual;
 import model.Admin;
@@ -39,6 +40,7 @@ public class UserManager {
                 }
             }
             System.out.println("Authentication failed: Invalid username or password.");
+            authenticate();
         } catch (Exception e) {
             System.out.println("Error:" + e.getMessage());
         }
