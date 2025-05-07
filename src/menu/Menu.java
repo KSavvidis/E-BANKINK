@@ -13,12 +13,13 @@ public class Menu {
         System.out.println("===================================");
         try(Scanner sc = new Scanner(System.in)){
             int choice = sc.nextInt();
+            String type;//nea metavliti gia to type
             switch(choice){
                 case 1:
                     UserManager userManager = new UserManager();
-                    User user = userManager.authenticate();
-                    if (user != null) {
-                        switch (user.getType()) {
+                     type = userManager.authenticate();//pairnei to type
+                    if (type != null) {
+                        switch (type) {//tsekarei to type
                             case "Individual":
                                 showIndividualMenu();
                                 break;
@@ -48,13 +49,10 @@ public class Menu {
         System.out.println("Individual Customer Menu");
         System.out.println("======================");
         System.out.println("1. Overview");
-        System.out.println("2. Withdraw");
-        System.out.println("3. Deposit");
-        System.out.println("4. Transfer");
-        System.out.println("5. Create Standing Order");
-        System.out.println("6. List Standing Orders");
-        System.out.println("7. Back to main menu");
-        System.out.println("8. Exit");
+        System.out.println("2. Transactions");
+        System.out.println("3. Create Standing Order");
+        System.out.println("4. List Standing Orders");
+        System.out.println("5. Back to main menu");
         System.out.print("Enter your choice:");
         try(Scanner sc = new Scanner(System.in)){
             if(sc.hasNextInt()){
@@ -75,6 +73,30 @@ public class Menu {
 
     private void showAdminMenu(){
     System.out.println("Admin Menu");
+    System.out.println("======================");
+    System.out.println("1. Customers");
+    System.out.println("2. Bank Accounts");
+    System.out.println("3. Company Bills");
+    System.out.println("5. List Standing Orders");
+    System.out.println("6. Pay Customer's Bills");
+    System.out.println("7. Simulate Time Passing");
+    System.out.println("8. Back to main menu");
+    System.out.print("Enter your choice:");
+    try(Scanner sc = new Scanner(System.in)){
+        if(sc.hasNextInt()){
+            int choice = sc.nextInt();
+            switch(choice){
+                case 1:
+
+            }
+        }
+        else{
+            System.out.println("Please enter a valid choice. Try again.");
+        }
+    }
+    catch(Exception e){
+        System.out.println("Error:" + e.getMessage());
+    }
     }
     private void showCompanyMenu(){
     System.out.println("Company Menu");

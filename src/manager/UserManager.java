@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class UserManager {
 
-    public User authenticate() {
+    public String authenticate() {//edw String anti gia User
         File usersFile = new File("data/users/users.csv");  // Πλήρης διαδρομή
 
         Scanner sc = new Scanner(System.in);
@@ -36,10 +36,10 @@ public class UserManager {
                     String userVAT = info.get("vatNumber");
                     User user = createUser(fileUsername, filePassword, userType, userLegalName, userVAT);
                     System.out.println("Authentication successful. Welcome, " + userLegalName + "!");
-                    return user;
+                    return userType;//edw kanei return String
                 }
             }
-            System.out.println("Authentication failed: Invalid username or password.");
+            System.out.println("Authentication failed: Invalid username or password. Try again.");
             authenticate();
         } catch (Exception e) {
             System.out.println("Error:" + e.getMessage());
