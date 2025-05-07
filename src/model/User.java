@@ -11,7 +11,6 @@ public abstract class User {
     private String legalName;
     private String type;
 
-
     public String getUserName() {
         return userName;
     }

@@ -49,30 +49,7 @@ public class Menu {
     }
 
     private void showAdminMenu(){
-    System.out.println("Admin Menu");
-    System.out.println("========================");
-    System.out.println("1. Customers");
-    System.out.println("2. Bank Accounts");
-    System.out.println("3. Pay Customer's Bills");
-    System.out.println("4. Transactions");
-    System.out.println("5. Simulate Time Passing");
-    System.out.println("6. Exit");
-    System.out.print("Enter your choice:");
-    try(Scanner sc = new Scanner(System.in)){
-        if(sc.hasNextInt()){
-            int choice = sc.nextInt();
-            switch(choice){
-                case 1:
-            }
-        }
-        else{
-            System.out.println("Please enter a valid choice. Try again.");
-        }
 
-    }
-    catch(Exception e){
-        System.out.println("Error:" + e.getMessage());
-    }
     }
     private void showCompanyMenu(){
 
