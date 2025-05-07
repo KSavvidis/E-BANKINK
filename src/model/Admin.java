@@ -1,7 +1,9 @@
 package model;
 
 public class Admin extends User {
-    public Admin(String userName, String password) {
-        super(userName, password);
+    String VAT;
+    public Admin(String userName, String password,String legalName,String type,String VAT) {
+        super(userName, password,legalName,type);
+        this.VAT=VAT;
     }
 }
