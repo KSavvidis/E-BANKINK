@@ -16,17 +16,17 @@ public class Menu {
             switch(choice){
                 case 1:
                     UserManager userManager = new UserManager();
-                    User user = userManager.authenticate();  // Χρησιμοποιούμε την authenticate που επιστρέφει το σωστό αντικείμενο χρήστη
+                    User user = userManager.authenticate();
                     if (user != null) {
                         switch (user.getType()) {
                             case "Individual":
-                                showIndividualMenu(); // Προβάλλουμε το μενού του ατομικού πελάτη
+                                showIndividualMenu();
                                 break;
                             case "Admin":
-                                showAdminMenu(); // Προβάλλουμε το μενού του διαχειριστή
+                                showAdminMenu();
                                 break;
                             case "Company":
-                                showCompanyMenu(); // Προβάλλουμε το μενού της εταιρείας
+                                showCompanyMenu();
                                 break;
                             default:
                                 System.out.println("Unknown user type.");
@@ -39,8 +39,7 @@ public class Menu {
                     break;
                 default:
                     System.out.println("Invalid choice, please try again.");
-                    start();  // Επαναφορά του μενού σε περίπτωση μη έγκυρης επιλογής
-
+                    start();
             }
         }
     }
