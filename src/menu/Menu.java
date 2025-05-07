@@ -4,7 +4,7 @@ import manager.UserManager;
 import java.util.Scanner;
 
 public class Menu {
-    private void start(){
+    public void start(){
         System.out.println("Welcome to the TUC Bank Menu");
         System.out.println("===================================");
         System.out.println("1. Login");
@@ -49,7 +49,14 @@ public class Menu {
     }
 
     private void showAdminMenu(){
-
+        System.out.println("Admin Menu");
+        System.out.println("========================");
+        System.out.println("1. Customers");
+        System.out.println("2. Bank Accounts");
+        System.out.println("3. Bills");
+        System.out.println("4. Transactions");
+        System.out.println("5. Simulate Time Passing");
+        System.out.println("6. Exit");
     }
     private void showCompanyMenu(){
 
