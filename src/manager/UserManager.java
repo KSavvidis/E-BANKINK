@@ -14,7 +14,8 @@ import java.util.Scanner;
 public class UserManager {
 
     public User authenticate() {
-        File usersFile = new File("data/users/users.csv");
+        File usersFile = new File("data/users/users.csv");  // Πλήρης διαδρομή
+
         Scanner sc = new Scanner(System.in);
         System.out.println("Username: ");
         String bufferUserName = sc.next(); // όνομα input
