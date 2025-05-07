@@ -2,6 +2,7 @@ package menu;
 
 import manager.UserManager;
 import java.util.Scanner;
+import model.User;
 
 public class Menu {
     public void start(){
@@ -14,6 +15,31 @@ public class Menu {
             int choice = sc.nextInt();
             switch(choice){
                 case 1:
+                    UserManager userManager = new UserManager();
+                    User user = userManager.authenticate();  // Χρησιμοποιούμε την authenticate που επιστρέφει το σωστό αντικείμενο χρήστη
+                    if (user != null) {
+                        switch (user.getType()) {
+                            case "Individual":
+                                showIndividualMenu(); // Προβάλλουμε το μενού του ατομικού πελάτη
+                                break;
+                            case "Admin":
+                                showAdminMenu(); // Προβάλλουμε το μενού του διαχειριστή
+                                break;
+                            case "Company":
+                                showCompanyMenu(); // Προβάλλουμε το μενού της εταιρείας
+                                break;
+                            default:
+                                System.out.println("Unknown user type.");
+                        }
+                    }
+                    break;
+                case 2:
+                    System.out.println("Exiting the system. Goodbye!");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice, please try again.");
+                    start();  // Επαναφορά του μενού σε περίπτωση μη έγκυρης επιλογής
 
             }
         }
@@ -49,16 +75,9 @@ public class Menu {
     }
 
     private void showAdminMenu(){
-        System.out.println("Admin Menu");
-        System.out.println("========================");
-        System.out.println("1. Customers");
-        System.out.println("2. Bank Accounts");
-        System.out.println("3. Bills");
-        System.out.println("4. Transactions");
-        System.out.println("5. Simulate Time Passing");
-        System.out.println("6. Exit");
+    System.out.println("Admin Menu");
     }
     private void showCompanyMenu(){
-
+    System.out.println("Company Menu");
     }
 }

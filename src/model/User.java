@@ -11,8 +11,11 @@ public abstract class User {
     private String legalName;
     private String type;
 
-    public User(String userName,String password,String legalName,String type) {
+    public User(String userName, String password, String legalName, String type) {
         this.userName = userName;
+        this.password = password;
+        this.legalName = legalName;
+        this.type = type;
     }
 
     public String getUserName() {
