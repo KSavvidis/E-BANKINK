@@ -11,47 +11,37 @@ public abstract class User {
     private String legalName;
     private String type;
 
-    private String authenticate() {
-        File usersFile = new File("Users.csv");
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Username: ");
-        String bufferUserName = sc.next(); // onoma INput
-        System.out.println("Password: ");
-        String bufferPassword = sc.next();
-
-        try (BufferedReader br = new BufferedReader(new FileReader(usersFile))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                Map<String, String> info = parseLine(line);
-                String fileUsername = info.get("userName");
-                String filePassword = info.get("password");
-
-                if (bufferUserName.equals(fileUsername) && bufferPassword.equals(filePassword)) {
-                    this.userName = fileUsername;
-                    this.password = filePassword;
-                    this.legalName = info.get("legalName");
-                    this.type = info.get("type");
-                    System.out.println("Authentication successful. Welcome, " + this.legalName + "!");
-                    return this.type;
-                }
-            }
-            System.out.println("Authentication failed: Invalid username or password.");
-        } catch (Exception e) {
-            System.out.println("Error:" + e.getMessage());
-        }
-        return null;
+    public String getUserName() {
+        return userName;
     }
 
+    public void setUserName(String userName) {
+        this.userName = userName;
 
-    private Map<String, String> parseLine(String line) {
-        Map<String, String> map = new HashMap<>();
-        String[] parts = line.split(",");
-        for (String part : parts) {
-            String[] keyValue = part.split(":");
-            if (keyValue.length == 2) {
-                map.put(keyValue[0].trim(), keyValue[1].trim());
-            }
-        }
-        return map;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getLegalName() {
+        return legalName;
+    }
+
+    public void setLegalName(String legalName) {
+        this.legalName = legalName;
+    }
+
 }
