@@ -30,10 +30,10 @@ public class UserManager {
 
                 if (bufferUserName.equals(fileUsername) && bufferPassword.equals(filePassword)) {
                     String userType = info.get("type");
-                    String legalName = info.get("legalName");
-                    String VAT = info.get("vatNumber");
-                    User user = createUser(userType, fileUsername, filePassword, legalName, userType, VAT);
-                    System.out.println("Authentication successful. Welcome, " + legalName + "!");
+                    String userLegalName = info.get("legalName");
+                    String userVAT = info.get("vatNumber");
+                    User user = createUser(fileUsername, filePassword, userType, userLegalName, userVAT);
+                    System.out.println("Authentication successful. Welcome, " + user.getLegalName() + "!");
                     return user;
                 }
             }
@@ -45,7 +45,7 @@ public class UserManager {
     }
 
     private User createUser(String userName, String password,String legalName,String type,String VAT) {
-        switch (userType) {
+        switch (type) {
             case "Individual":
                 return new Individual(userName, password,legalName,type,VAT);
             case "Admin":
