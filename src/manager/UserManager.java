@@ -48,9 +48,9 @@ public class UserManager {
             case "Individual":
                 return new Individual(userName, password,legalName,type,VAT);
             case "Admin":
-                return new Admin(userName, password,legalN);
+                return new Admin(userName, password,legalName,type,VAT);
             case "Company":
-                return new Company(userName, password);
+                return new Company(userName, password,legalName,type,VAT);
             default:
                 return null;
         }

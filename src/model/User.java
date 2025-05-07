@@ -11,6 +11,10 @@ public abstract class User {
     private String legalName;
     private String type;
 
+    public User(String userName,String password,String legalName,String type) {
+        this.userName = userName;
+    }
+
     public String getUserName() {
         return userName;
     }
