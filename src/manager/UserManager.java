@@ -14,7 +14,7 @@ import java.util.Scanner;
 public class UserManager {
 
     public User authenticate() {
-        File usersFile = new File("Users.csv");
+        File usersFile = new File("users.csv");
         Scanner sc = new Scanner(System.in);
         System.out.println("Username: ");
         String bufferUserName = sc.next(); // όνομα input
@@ -33,7 +33,7 @@ public class UserManager {
                     String userLegalName = info.get("legalName");
                     String userVAT = info.get("vatNumber");
                     User user = createUser(fileUsername, filePassword, userType, userLegalName, userVAT);
-                    System.out.println("Authentication successful. Welcome, " + user.getLegalName() + "!");
+                    System.out.println("Authentication successful. Welcome, " + userLegalName + "!");
                     return user;
                 }
             }
