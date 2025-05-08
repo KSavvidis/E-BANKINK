@@ -5,47 +5,48 @@ import model.User;
 import model.Individual;
 import model.Admin;
 import model.Company;
+import storage.FileStorageManager;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+
 public class UserManager {
 
-    public String authenticate() {//edw String anti gia User
-        File usersFile = new File("data/users/users.csv");  // Πλήρης διαδρομή
+    public String authenticate() {
+        try (Scanner sc = new Scanner(System.in)) {
+            System.out.print("Username: ");
+            String bufferUserName = sc.next();
+            System.out.print("Password: ");
+            String bufferPassword = sc.next();
 
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Username: ");
-        String bufferUserName = sc.next(); // όνομα input
-        System.out.println("Password: ");
-        String bufferPassword = sc.next();
+            // ftiaxnetai antikeimneo FileStorageManager gia na diavasei dedomena apo to arxeio
+            FileStorageManager storageManager = new FileStorageManager();
+            //fortwnei ta dedomena apo to users.csv
+            List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
 
-        try (BufferedReader br = new BufferedReader(new FileReader(usersFile))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                Map<String, String> info = parseLine(line);
-                String fileUsername = info.get("userName");
-                String filePassword = info.get("password");
+            for (Map<String, String> userMap : userData) {
+                String fileUsername = userMap.get("userName");
+                String filePassword = userMap.get("password");
 
                 if (bufferUserName.equals(fileUsername) && bufferPassword.equals(filePassword)) {
-                    String userType = info.get("type");
-                    String userLegalName = info.get("legalName");
-                    String userVAT = info.get("vatNumber");
-                    User user = createUser(fileUsername, filePassword, userType, userLegalName, userVAT);
-                    System.out.println("Authentication successful. Welcome, " + userLegalName + "!");
-                    return userType;//edw kanei return String
+                    String userType = userMap.get("type");
+                    String legalName = userMap.get("legalName");
+                    System.out.println("Authentication successful. Welcome, " + legalName + "!");
+                    return userType; // Epistrefei string
                 }
             }
-            System.out.println("Authentication failed: Invalid username or password. Try again.");
-            authenticate();
-        } catch (Exception e) {
-            System.out.println("Error:" + e.getMessage());
+
+            System.out.println("Authentication failed. Invalid username or password.");
+            return null;
         }
-        return null;
     }
+
+
 
     private User createUser(String userName, String password,String legalName,String type,String VAT) {
         switch (type) {
@@ -71,4 +72,5 @@ public class UserManager {
         }
         return map;
     }
+
 }
