@@ -1,9 +1,5 @@
 package model;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.*;
-import java.io.File;
 
 public abstract class User {
     private String userName;

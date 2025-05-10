@@ -1,14 +1,6 @@
 package storage;
 
-import model.User;
-import model.Individual;
-import model.Admin;
-import model.Company;
-import manager.UserManager;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class FileStorageManager implements StorageManager {
@@ -65,8 +57,19 @@ public class FileStorageManager implements StorageManager {
 
     @Override
     public void save(Storable s, String filePath, boolean append) {
-       //den xreiazetai akoma
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, append))) {
+            // Χρησιμοποιούμε την marshal() για να μετατρέψουμε το αντικείμενο σε String
+            String data = s.marshal();
+
+            if (data != null) {
+                writer.write(data);
+                writer.newLine(); // Προσθέτει νέα γραμμή μετά από κάθε δεδομένο
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving data: " + e.getMessage());
+        }
     }
+
 }
 
 

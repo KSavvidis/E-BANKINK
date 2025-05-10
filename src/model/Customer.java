@@ -6,4 +6,12 @@ public abstract class Customer extends User {
         super(userName, password, legalName, type);
         this.VAT = VAT;
     }
+
+    public String getVAT() {
+        return VAT;
+    }
+
+    public void setVAT(String VAT) {
+        this.VAT = VAT;
+    }
 }

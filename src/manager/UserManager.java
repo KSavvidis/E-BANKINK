@@ -46,6 +46,20 @@ public class UserManager {
         }
     }
 
+    public User getUser(String type) {
+        switch (type) {
+            case "Individual":
+                return new Individual("sampleUsername", "samplePassword", "Sample Legal Name", type, "sampleVAT");
+            case "Admin":
+                return new Admin("sampleUsername", "samplePassword", "Sample Legal Name", type, "sampleVAT");
+            case "Company":
+                return new Company("sampleUsername", "samplePassword", "Sample Legal Name", type, "sampleVAT");
+            default:
+                System.out.println("Invalid user type.");
+                return null;
+        }
+    }
+
 
 
     private User createUser(String userName, String password,String legalName,String type,String VAT) {
