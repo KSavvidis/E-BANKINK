@@ -20,7 +20,6 @@ public abstract class User {
 
     public void setUserName(String userName) {
         this.userName = userName;
-
     }
 
     public String getType() {
@@ -47,4 +46,5 @@ public abstract class User {
         this.legalName = legalName;
     }
 
+    public abstract String getVAT();
 }

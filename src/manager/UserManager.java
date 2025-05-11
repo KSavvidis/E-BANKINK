@@ -17,59 +17,68 @@ import java.util.Scanner;
 
 public class UserManager {
 
-    public String authenticate() {
-        try (Scanner sc = new Scanner(System.in)) {
-            System.out.print("Username: ");
-            String bufferUserName = sc.next();
-            System.out.print("Password: ");
-            String bufferPassword = sc.next();
+    private String fileUserName;
+    private String filePassword;
+    private String fileLegalName;
+    private String fileType;
+    private String fileVAT;
 
-            // ftiaxnetai antikeimneo FileStorageManager gia na diavasei dedomena apo to arxeio
-            FileStorageManager storageManager = new FileStorageManager();
-            //fortwnei ta dedomena apo to users.csv
-            List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
+    public User authenticate() {
+        Scanner sc = new Scanner(System.in);
 
-            for (Map<String, String> userMap : userData) {
-                String fileUsername = userMap.get("userName");
-                String filePassword = userMap.get("password");
+        System.out.print("Username: ");
+        String bufferUserName = sc.next();
+        System.out.print("Password: ");
+        String bufferPassword = sc.next();
 
-                if (bufferUserName.equals(fileUsername) && bufferPassword.equals(filePassword)) {
-                    String userType = userMap.get("type");
-                    String legalName = userMap.get("legalName");
-                    System.out.println("Authentication successful. Welcome, " + legalName + "!");
-                    return userType; // Epistrefei string
+        // ftiaxnetai antikeimneo FileStorageManager gia na diavasei dedomena apo to arxeio
+        FileStorageManager storageManager = new FileStorageManager();
+        //fortwnei ta dedomena apo to users.csv
+        List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
+
+        for (Map<String, String> userMap : userData) {
+            String fileUsername = userMap.get("userName");
+            String filePassword = userMap.get("password");
+
+            if (bufferUserName.equals(fileUsername) && bufferPassword.equals(filePassword)) {
+                this.fileUserName = fileUsername;
+                this.filePassword = filePassword;
+                this.fileLegalName = userMap.get("legalName");
+                this.fileType = userMap.get("type");
+                this.fileVAT = userMap.get("vatNumber");
+                System.out.println("Authentication successful. Welcome, " + fileLegalName + "!");
+                if(fileType.equals("Admin")) {
+                    return createUser(fileUserName, filePassword, fileLegalName, fileType, null);
                 }
+                return createUser(fileUserName, filePassword, fileLegalName, fileType, fileVAT);
             }
-
-            System.out.println("Authentication failed. Invalid username or password.");
-            return null;
         }
+        System.out.println("Authentication failed. Invalid username or password.");
+        return null;
     }
 
     public User getUser(String type) {
         switch (type) {
             case "Individual":
-                return new Individual("sampleUsername", "samplePassword", "Sample Legal Name", type, "sampleVAT");
+                return new Individual(fileUserName, filePassword, fileLegalName, fileType, fileVAT);
             case "Admin":
-                return new Admin("sampleUsername", "samplePassword", "Sample Legal Name", type, "sampleVAT");
+                return new Admin(fileUserName, filePassword, fileLegalName, fileType);
             case "Company":
-                return new Company("sampleUsername", "samplePassword", "Sample Legal Name", type, "sampleVAT");
+                return new Company(fileUserName, filePassword, fileLegalName, fileType, fileVAT);
             default:
                 System.out.println("Invalid user type.");
                 return null;
         }
     }
 
-
-
-    private User createUser(String userName, String password,String legalName,String type,String VAT) {
+    private User createUser(String userName, String password, String legalName, String type, String VAT) {
         switch (type) {
             case "Individual":
-                return new Individual(userName, password,legalName,type,VAT);
+                return new Individual(userName, password, legalName, type, VAT);
             case "Admin":
-                return new Admin(userName, password,legalName,type,VAT);
+                return new Admin(userName, password, legalName, type);
             case "Company":
-                return new Company(userName, password,legalName,type,VAT);
+                return new Company(userName, password, legalName, type, VAT);
             default:
                 return null;
         }
@@ -86,5 +95,4 @@ public class UserManager {
         }
         return map;
     }
-
 }

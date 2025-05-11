@@ -2,12 +2,24 @@ package model;
 
 import storage.Storable;
 
+import java.util.List;
+
 public abstract class Account implements Storable {
     protected String iban;
     protected String primaryOwner;
+    protected List<String> coOwner;
     protected String dateCreated;
     protected double rate;
     protected double balance;
+
+    public Account(String iban, String primaryOwner, List<String> coOwner, String dateCreated, double rate, double balance) {
+        this.iban = iban;
+        this.primaryOwner = primaryOwner;
+        this.coOwner = coOwner;
+        this.dateCreated = dateCreated;
+        this.rate = rate;
+        this.balance = balance;
+    }
 
     public Account(String iban, String primaryOwner, String dateCreated, double rate, double balance) {
         this.iban = iban;
@@ -16,7 +28,7 @@ public abstract class Account implements Storable {
         this.rate = rate;
         this.balance = balance;
     }
-
+    //2os constructor gia to businessAccount
     public String getIban() {
         return iban;
     }
@@ -31,6 +43,14 @@ public abstract class Account implements Storable {
 
     public void setPrimaryOwner(String primaryOwner) {
         this.primaryOwner = primaryOwner;
+    }
+
+    public List<String> getCoOwner() {
+        return coOwner;
+    }
+
+    public void setCoOwner(List<String> coOwner) {
+        this.coOwner = coOwner;
     }
 
     public String getDateCreated() {
@@ -56,6 +76,7 @@ public abstract class Account implements Storable {
     public void setBalance(double balance) {
         this.balance = balance;
     }
+
     @Override
     public abstract String marshal();
     @Override
@@ -63,6 +84,4 @@ public abstract class Account implements Storable {
 
         // menei keni giati ulopoieitai ston AccountManager
     }
-
-
 }

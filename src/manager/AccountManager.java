@@ -19,7 +19,7 @@ public class AccountManager {
     }
 
     public void loadAccounts() {
-        Storable loader = new Storable() {
+        Storable loader = new Storable() {//giati den ginetai implement ths storable den exw katalabei kai ginetai auto
             @Override
             public String marshal() { return null; }
 
@@ -39,9 +39,15 @@ public class AccountManager {
                 Account acc = null;
                 try {//dimiourgei i personal i business account
                     if (type.equals("PersonalAccount")) {
+                        List<String> coOwners = new ArrayList<>();
+                        if(map.containsKey("coOwners")) {
+                            String[] owners = map.get("coOwner").split(":");
+                            coOwners = Arrays.asList(owners);
+                            }
                         acc = new PersonalAccount(
                                 map.get("iban"),
                                 map.get("primaryOwner"),
+                                coOwners,
                                 map.get("dateCreated"),
                                 Double.parseDouble(map.get("rate")),//pairnei tin timi apo to map me kleidi rate pou einai string kai tin metattrepei se double
                                 Double.parseDouble(map.get("balance"))
@@ -100,6 +106,5 @@ public class AccountManager {
         }
         return null;
     }
-
 
 }
