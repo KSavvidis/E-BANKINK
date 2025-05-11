@@ -14,10 +14,10 @@ import manager.AccountManager;
 import model.Customer;
 
 public class Menu {
-    private Scanner sc = new Scanner(System.in);
 
     public void start(){
         boolean exit = false;
+        Scanner sc = new Scanner(System.in);
         while (!exit) {
             System.out.println("Welcome to the TUC Bank Menu");
             System.out.println("===================================");
@@ -34,6 +34,7 @@ public class Menu {
                     case 2:
                         System.out.println("Exiting the system. Goodbye!");
                         exit = true;
+                        sc.close();
                         break;
                     default:
                         System.out.println("Invalid choice, please try again.");
@@ -66,7 +67,7 @@ public class Menu {
         }
         else {
             System.out.println("Please try again.");
-            start();
+            return;
         }
     }
     private void showIndividualMenu(User user,Scanner sc) {
@@ -99,7 +100,6 @@ public class Menu {
                         break;
                     case 5:
                         exit = true;
-                        start();
                         break;
                     default:
                         System.out.println("Invalid choice, please try again.");
@@ -157,7 +157,7 @@ public class Menu {
             sc.nextLine();
 
             if(choice == 3){
-                showIndividualMenu(user, sc);
+                return;
             }
             Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
             if (selectedAccount == null) {
