@@ -115,7 +115,6 @@ public class Menu {
     private void showOverviewMenu(User user, Scanner sc) {
         AccountManager accountManager = new AccountManager();
         List<Account> userAccounts = accountManager.findByVat(user.getVAT());
-        List<Account> coOwnedAccounts = accountManager.findByVat(user.getVAT());
 
         System.out.println("\nAccount Overview");
         System.out.println("======================");
@@ -129,12 +128,6 @@ public class Menu {
             for (Account acc : userAccounts) {
                 String role = acc.getPrimaryOwner().equals(user.getVAT()) ? "Primary Owner" : "Co-Owner";
                 System.out.printf("- IBAN: %s \t Balance: %.2f \t [%s]\n", acc.getIban(), acc.getBalance(), role);
-            }
-        }
-        if (!coOwnedAccounts.isEmpty()) {
-            System.out.println("\nAccounts where you are a Co-Owner:");
-            for (Account acc : coOwnedAccounts) {
-                System.out.printf("- IBAN: %s \t Balance: %.2f \t [Co-Owner]\n", acc.getIban(), acc.getBalance());
             }
         }
 

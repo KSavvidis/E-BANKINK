@@ -52,7 +52,7 @@ public class TransactionManager {
             return;
         }
 
-        account.setBalance(account.getBalance() + amount);
+        account.setBalance(account.getBalance() - amount);
         updateAccountInFile(account);
         System.out.printf("Withdrew %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }

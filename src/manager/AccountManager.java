@@ -20,37 +20,43 @@ public class AccountManager {
     }
 
     public void loadAccounts() {
-        Storable loader = new Storable() {//giati den ginetai implement ths storable den exw katalabei kai ginetai auto
+        Storable loader = new Storable() {
             @Override
-            public String marshal() { return null; }
+            public String marshal() {
+                return null;
+            }
 
-            //metatrepei tin grammi tou arxeiou(string) se object
             @Override
             public void unmarshal(String data) {
                 Map<String, String> map = new HashMap<>();
+                List<String> coOwners = new ArrayList<>();
                 String[] parts = data.split(",");
+
                 for (String part : parts) {
                     String[] kv = part.split(":", 2);
-                    if (kv.length == 2) map.put(kv[0].trim(), kv[1].trim());
+                    if (kv.length == 2) {
+                        String key = kv[0].trim();
+                        String value = kv[1].trim();
+                        if (key.equals("coOwner")) {
+                            coOwners.add(value);
+                        } else {
+                            map.put(key, value);
+                        }
+                    }
                 }
 
                 String type = map.get("type");
                 if (type == null) return;
 
                 Account acc = null;
-                try {//dimiourgei i personal i business account
+                try {
                     if (type.equals("PersonalAccount")) {
-                        List<String> coOwners = new ArrayList<>();
-                        if(map.containsKey("coOwners")) {
-                            String[] owners = map.get("coOwner").split(":");
-                            coOwners = Arrays.asList(owners);
-                            }
                         acc = new PersonalAccount(
                                 map.get("iban"),
                                 map.get("primaryOwner"),
                                 coOwners,
                                 map.get("dateCreated"),
-                                Double.parseDouble(map.get("rate")),//pairnei tin timi apo to map me kleidi rate pou einai string kai tin metattrepei se double
+                                Double.parseDouble(map.get("rate")),
                                 Double.parseDouble(map.get("balance"))
                         );
                     } else if (type.equals("BusinessAccount")) {
@@ -73,6 +79,7 @@ public class AccountManager {
 
         storageManager.load(loader, accountsFilePath);
     }
+
 
     //apothikevei oloous tous logariasmous sto arxeio me xrisi tis save apo filestoragemanager
     public void saveAccounts() {
@@ -113,60 +120,31 @@ public class AccountManager {
         }
 
     public Account selectAccountByUser(Scanner sc, String vat) {
-        // Βρίσκουμε τους λογαριασμούς στους οποίους ο χρήστης είναι primary owner ή co-owner
-        List<Account> userAccounts = findByVat(vat);  // primary accounts
-        List<Account> coOwnedAccounts = findCoOwnedAccounts(vat);  // co-owned accounts
-
-        // Συνδυάζουμε τις λίστες (χωρίς να επαναλαμβάνονται οι ίδιοι λογαριασμοί)
-        Set<Account> allAccounts = new HashSet<>(userAccounts);
-        allAccounts.addAll(coOwnedAccounts);
+        List<Account> allAccounts = findByVat(vat); // <- this method should be updated as well to return both owned and co-owned
 
         if (allAccounts.isEmpty()) {
-            System.out.println("You don't have any accounts.");
+            System.out.println("No accounts found.");
             return null;
         }
 
-        // Εμφάνιση όλων των λογαριασμών
-        System.out.println("\nSelect an account:");
-
-        // Εμφάνιση των λογαριασμών του primary owner
-        if (!userAccounts.isEmpty()) {
-            System.out.println("Your Primary Accounts:");
-            for (int i = 0; i < userAccounts.size(); i++) {
-                Account acc = userAccounts.get(i);
-                String role = acc.getPrimaryOwner().equals(vat) ? "Primary Owner" : "Co-Owner";
-                System.out.printf("%d. IBAN: %s \t Balance: %.2f \t [%s]\n",
-                        i + 1, acc.getIban(), acc.getBalance(), role);
-            }
+        System.out.println("Select an account:");
+        for (int i = 0; i < allAccounts.size(); i++) {
+            Account acc = allAccounts.get(i);
+            String role = acc.getPrimaryOwner().equals(vat) ? "Primary Owner" : "Co-Owner";
+            System.out.printf("%d. IBAN: %s \t Balance: %.2f \t [%s]\n", i + 1, acc.getIban(), acc.getBalance(), role);
         }
 
-        // Εμφάνιση των λογαριασμών του co-owner
-        if (!coOwnedAccounts.isEmpty()) {
-            System.out.println("\nYour Co-Owner Accounts:");
-            for (int i = 0; i < coOwnedAccounts.size(); i++) {
-                Account acc = coOwnedAccounts.get(i);
-                System.out.printf("%d. IBAN: %s \t Balance: %.2f \t [Co-Owner]\n",
-                        i + 1 + userAccounts.size(), acc.getIban(), acc.getBalance());
-            }
-        }
+        System.out.printf("Enter account number (1-%d): ", allAccounts.size());
+        int index = sc.nextInt();
+        sc.nextLine();
 
-        // Επιλογή λογαριασμού από τον χρήστη
-        System.out.print("Enter account number (1-" + allAccounts.size() + "): ");
-        int choice = sc.nextInt() - 1;
-        sc.nextLine(); // Consume newline
-
-        // Εξασφαλίζουμε ότι η επιλογή είναι έγκυρη
-        if (choice < 0 || choice >= allAccounts.size()) {
-            System.out.println("Invalid account selection.");
+        if (index < 1 || index > allAccounts.size()) {
+            System.out.println("Invalid selection.");
             return null;
         }
 
-        // Επιστρέφουμε τον επιλεγμένο λογαριασμό
-        return (Account) allAccounts.toArray()[choice];
+        return allAccounts.get(index - 1);
     }
-
-
-
 
     public List<Account> findCoOwnedAccounts(String vat) {
         List<Account> coOwnedAccounts = new ArrayList<>();

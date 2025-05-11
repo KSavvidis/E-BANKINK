@@ -46,5 +46,5 @@ public abstract class User {
         this.legalName = legalName;
     }
 
-
+    public abstract String getVAT();
 }
