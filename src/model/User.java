@@ -21,6 +21,7 @@ public abstract class User {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+    public abstract String getVAT();
 
     public String getType() {
         return type;
