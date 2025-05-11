@@ -14,10 +14,10 @@ import manager.AccountManager;
 import model.Customer;
 
 public class Menu {
+    private Scanner sc = new Scanner(System.in);
 
     public void start(){
         boolean exit = false;
-        Scanner sc = new Scanner(System.in);
         while (!exit) {
             System.out.println("Welcome to the TUC Bank Menu");
             System.out.println("===================================");
@@ -34,7 +34,6 @@ public class Menu {
                     case 2:
                         System.out.println("Exiting the system. Goodbye!");
                         exit = true;
-                        sc.close();
                         break;
                     default:
                         System.out.println("Invalid choice, please try again.");
@@ -79,7 +78,7 @@ public class Menu {
             System.out.println("2. Transactions");
             System.out.println("3. Create Standing Order");
             System.out.println("4. List Standing Orders");
-            System.out.println("5. Back to main menu");
+            System.out.println("5. Back to start menu");
             System.out.print("Enter your choice:");
 
             if (sc.hasNextInt()) {
@@ -100,6 +99,7 @@ public class Menu {
                         break;
                     case 5:
                         exit = true;
+                        start();
                         break;
                     default:
                         System.out.println("Invalid choice, please try again.");
@@ -112,33 +112,38 @@ public class Menu {
         }
     }
 
-    private void showOverviewMenu(User user,Scanner sc) {
+    private void showOverviewMenu(User user, Scanner sc) {
         AccountManager accountManager = new AccountManager();
-        List<Account> accounts = accountManager.getAllAccounts();
-        System.out.println("1. Overview");
+        List<Account> userAccounts = accountManager.findByVat(user.getVAT());
+
+        System.out.println("\nAccount Overview");
         System.out.println("======================");
         System.out.println("Name: " + user.getLegalName());
         System.out.println("VAT: " + user.getVAT());
-        for (Account acc : accounts) {
-            String role = null;
-            if (acc.getPrimaryOwner().equals(user.getVAT())) {
-                role = "Primary Owner";
-            }
-            else if (acc instanceof PersonalAccount) {
-                if (acc.getCoOwner().contains(user.getVAT())) {
-                    role = "Co-Owner";
-                }
-            }
-            if (role != null) {
-                System.out.printf("Account: %s \t Balance: %.2f \t [%s]\n", acc.getIban(), acc.getBalance(), role);
+        System.out.println("\nYour Accounts:");
+
+        if (userAccounts.isEmpty()) {
+            System.out.println("No accounts found.");
+        } else {
+            for (Account acc : userAccounts) {
+                String role = acc.getPrimaryOwner().equals(user.getVAT()) ? "Primary Owner" : "Co-Owner";
+                System.out.printf("- IBAN: %s \t Balance: %.2f \t [%s]\n", acc.getIban(), acc.getBalance(), role);
             }
         }
-        System.out.println("Press any key to continue...");
-        String key = sc.next();
+
+        System.out.println("\nPress any key to continue...");
+        sc.nextLine();
     }
     private void showTransactionsMenu(User user, Scanner sc) {
         AccountManager accountManager = new AccountManager();
         TransactionManager transactionManager = new TransactionManager(accountManager);
+
+        if (!accountManager.hasAccounts(user.getVAT())) {
+            System.out.println("You don't have any accounts to perform transactions on.");
+            System.out.println("Press any key to continue...");
+            sc.nextLine();
+            return;
+        }
 
         while (true) {
             System.out.println("\nTransactions Menu");
@@ -149,19 +154,23 @@ public class Menu {
             System.out.print("Enter your choice: ");
 
             int choice = sc.nextInt();
+            sc.nextLine();
+
+            if(choice == 3){
+                showIndividualMenu(user, sc);
+            }
+            Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
+            if (selectedAccount == null) {
+                continue;
+            }
+
             switch (choice) {
                 case 1:
-                    System.out.print("Enter amount to deposit: ");
-                    double depositAmount = sc.nextDouble();
-                    transactionManager.deposit(user.getVAT(), depositAmount); // Access VAT from Customer
+                    transactionManager.deposit(selectedAccount.getIban(), sc);
                     break;
                 case 2:
-                    System.out.print("Enter amount to withdraw: ");
-                    double withdrawAmount = sc.nextDouble();
-                    transactionManager.withdraw(user.getVAT(), withdrawAmount); // Access VAT from Customer
+                    transactionManager.withdraw(selectedAccount.getIban(), sc);
                     break;
-                case 3:
-                    return;
                 default:
                     System.out.println("Invalid choice. Try again.");
             }
@@ -185,7 +194,7 @@ public class Menu {
             choice = sc.nextInt();
             switch(choice){
                 case 1:
-
+                    break;
             }
         }
         else {

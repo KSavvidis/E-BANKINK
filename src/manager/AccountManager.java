@@ -98,13 +98,48 @@ public class AccountManager {
         return null;
     }
     //vriskei account me vasi vat alla to apothikevei se primaryowner kathws vat==primaryowner sto neo arxeio
-    public Account findByVat(String vat) {
-        for (Account acc : accounts) {
-            if (acc.getPrimaryOwner().equals(vat)) {
-                return acc;
+    public List<Account> findByVat(String vat) {
+            List<Account> userAccounts = new ArrayList<>();
+            for (Account account : accounts) {
+                if (account.getPrimaryOwner().equals(vat)) {
+                    userAccounts.add(account);
+                }
+                else if (account instanceof PersonalAccount && account.getCoOwner().contains(vat)) {
+                    userAccounts.add(account);
+                }
             }
+            return userAccounts;
         }
-        return null;
+
+    public Account selectAccountByUser(Scanner sc, String vat) {
+        List<Account> userAccounts = findByVat(vat);
+
+        if (userAccounts.isEmpty()) {
+            System.out.println("You don't have any accounts.");
+            return null;
+        }
+
+        System.out.println("\nSelect an account:");
+        for (int i = 0; i < userAccounts.size(); i++) {
+            Account acc = userAccounts.get(i);
+            String role = acc.getPrimaryOwner().equals(vat) ? "Primary Owner" : "Co-Owner";
+            System.out.printf("%d. %s (Balance: %.2f) [%s]\n",
+                    i + 1, acc.getIban(), acc.getBalance(), role);
+        }
+
+        System.out.print("Enter account number (1-" + userAccounts.size() + "): ");
+        int choice = sc.nextInt() - 1;
+        sc.nextLine(); // Consume newline
+
+        if (choice < 0 || choice >= userAccounts.size()) {
+            System.out.println("Invalid account selection.");
+            return null;
+        }
+
+        return userAccounts.get(choice);
     }
 
+    public boolean hasAccounts(String vat) {
+        return !findByVat(vat).isEmpty();
+    }
 }

@@ -4,8 +4,7 @@ import model.Account;
 import storage.FileStorageManager;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class TransactionManager {
     private final AccountManager accountManager;
@@ -16,37 +15,46 @@ public class TransactionManager {
         this.accountManager = accountManager;
     }
 
-    public void deposit(String vat, double amount) {
-        //vriskei ton logariasmo sto account.csv me vasi to vat tou user.csv
-        Account acc = accountManager.findByVat(vat);
-        if (acc != null) {
-            //enimerwnei to upoloipo
-            acc.setBalance(acc.getBalance() + amount);
-            //enimerwnei to arxeio gia tin allagi tou ypoloipou
-            updateAccountInFile(acc);
-            System.out.println("Deposit completed. New balance: " + acc.getBalance());
-        } else {
+    public void deposit(String iban, Scanner sc) {
+        Account account = accountManager.findByIban(iban);
+        if (account == null) {
             System.out.println("Account not found.");
+            return;
         }
+
+        System.out.print("Enter amount to deposit: ");
+        double amount = sc.nextDouble();
+        sc.nextLine(); // Consume newline
+
+        if (amount <= 0) {
+            System.out.println("Amount must be positive.");
+            return;
+        }
+
+        account.setBalance(account.getBalance() + amount);
+        updateAccountInFile(account);
+        System.out.printf("Deposited %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
 
-    public void withdraw(String vat, double amount) {
-        //vriskei ton logariasmo sto account.csv me vasi to vat tou user.csv
-        Account acc = accountManager.findByVat(vat);
-        if (acc != null) {
-            //elegxei tin diathesimotita twn xrimatwn
-            if (acc.getBalance() >= amount) {
-                //enimerwsi upoloipou
-                acc.setBalance(acc.getBalance() - amount);
-                //enimerwsi arxeiou
-                updateAccountInFile(acc);
-                System.out.println("Withdrawal completed. New balance: " + acc.getBalance());
-            } else {
-                System.out.println("Insufficient funds.");
-            }
-        } else {
+    public void withdraw(String iban, Scanner sc) {
+        Account account = accountManager.findByIban(iban);
+        if (account == null) {
             System.out.println("Account not found.");
+            return;
         }
+
+        System.out.print("Enter amount to deposit: ");
+        double amount = sc.nextDouble();
+        sc.nextLine(); // Consume newline
+
+        if (amount <= 0) {
+            System.out.println("Amount must be positive.");
+            return;
+        }
+
+        account.setBalance(account.getBalance() + amount);
+        updateAccountInFile(account);
+        System.out.printf("Withdrew %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
 
     // enimerwsi tis grammis tou arxeiou mono tou account pou ekane login
