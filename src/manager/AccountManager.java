@@ -5,6 +5,7 @@ import model.BusinessAccount;
 import model.PersonalAccount;
 import storage.FileStorageManager;
 import storage.Storable;
+import model.User;
 
 import java.util.*;
 
@@ -112,32 +113,75 @@ public class AccountManager {
         }
 
     public Account selectAccountByUser(Scanner sc, String vat) {
-        List<Account> userAccounts = findByVat(vat);
+        // Βρίσκουμε τους λογαριασμούς στους οποίους ο χρήστης είναι primary owner ή co-owner
+        List<Account> userAccounts = findByVat(vat);  // primary accounts
+        List<Account> coOwnedAccounts = findCoOwnedAccounts(vat);  // co-owned accounts
 
-        if (userAccounts.isEmpty()) {
+        // Συνδυάζουμε τις λίστες (χωρίς να επαναλαμβάνονται οι ίδιοι λογαριασμοί)
+        Set<Account> allAccounts = new HashSet<>(userAccounts);
+        allAccounts.addAll(coOwnedAccounts);
+
+        if (allAccounts.isEmpty()) {
             System.out.println("You don't have any accounts.");
             return null;
         }
 
+        // Εμφάνιση όλων των λογαριασμών
         System.out.println("\nSelect an account:");
-        for (int i = 0; i < userAccounts.size(); i++) {
-            Account acc = userAccounts.get(i);
-            String role = acc.getPrimaryOwner().equals(vat) ? "Primary Owner" : "Co-Owner";
-            System.out.printf("%d. %s (Balance: %.2f) [%s]\n",
-                    i + 1, acc.getIban(), acc.getBalance(), role);
+
+        // Εμφάνιση των λογαριασμών του primary owner
+        if (!userAccounts.isEmpty()) {
+            System.out.println("Your Primary Accounts:");
+            for (int i = 0; i < userAccounts.size(); i++) {
+                Account acc = userAccounts.get(i);
+                String role = acc.getPrimaryOwner().equals(vat) ? "Primary Owner" : "Co-Owner";
+                System.out.printf("%d. IBAN: %s \t Balance: %.2f \t [%s]\n",
+                        i + 1, acc.getIban(), acc.getBalance(), role);
+            }
         }
 
-        System.out.print("Enter account number (1-" + userAccounts.size() + "): ");
+        // Εμφάνιση των λογαριασμών του co-owner
+        if (!coOwnedAccounts.isEmpty()) {
+            System.out.println("\nYour Co-Owner Accounts:");
+            for (int i = 0; i < coOwnedAccounts.size(); i++) {
+                Account acc = coOwnedAccounts.get(i);
+                System.out.printf("%d. IBAN: %s \t Balance: %.2f \t [Co-Owner]\n",
+                        i + 1 + userAccounts.size(), acc.getIban(), acc.getBalance());
+            }
+        }
+
+        // Επιλογή λογαριασμού από τον χρήστη
+        System.out.print("Enter account number (1-" + allAccounts.size() + "): ");
         int choice = sc.nextInt() - 1;
         sc.nextLine(); // Consume newline
 
-        if (choice < 0 || choice >= userAccounts.size()) {
+        // Εξασφαλίζουμε ότι η επιλογή είναι έγκυρη
+        if (choice < 0 || choice >= allAccounts.size()) {
             System.out.println("Invalid account selection.");
             return null;
         }
 
-        return userAccounts.get(choice);
+        // Επιστρέφουμε τον επιλεγμένο λογαριασμό
+        return (Account) allAccounts.toArray()[choice];
     }
+
+
+
+
+    public List<Account> findCoOwnedAccounts(String vat) {
+        List<Account> coOwnedAccounts = new ArrayList<>();
+
+        for (Account account : accounts) {
+            if (account instanceof PersonalAccount) {
+                // Έλεγχος αν ο χρήστης είναι co-owner
+                if (account.getCoOwner() != null && account.getCoOwner().contains(vat)) {
+                    coOwnedAccounts.add(account);
+                }
+            }
+        }
+        return coOwnedAccounts;
+    }
+
 
     public boolean hasAccounts(String vat) {
         return !findByVat(vat).isEmpty();
