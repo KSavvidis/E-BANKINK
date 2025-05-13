@@ -18,7 +18,7 @@ public abstract class User {
         return userName;
     }
 
-    public abstract String getVAT();
+
 
     public void setUserName(String userName) {
         this.userName = userName;

@@ -33,6 +33,9 @@ public class TransactionManager {
 
         account.setBalance(account.getBalance() + amount);
         updateAccountInFile(account);
+
+        recordTransaction(account, "ATM Deposit", amount);
+
         System.out.printf("Deposited %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
 
@@ -43,7 +46,7 @@ public class TransactionManager {
             return;
         }
 
-        System.out.print("Enter amount to deposit: ");
+        System.out.print("Enter amount to withdraw: ");
         double amount = sc.nextDouble();
         sc.nextLine(); // Consume newline
 
@@ -54,7 +57,63 @@ public class TransactionManager {
 
         account.setBalance(account.getBalance() - amount);
         updateAccountInFile(account);
+
+        recordTransaction(account, "ATM Withdraw", amount);
+
         System.out.printf("Withdrew %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
+    }
+
+    public void transfer(String senderIban, Scanner sc) {
+        //idio opws deposit
+        Account sender = accountManager.findByIban(senderIban);
+        if (sender == null) {
+            System.out.println("Sender account not found.");
+            return;
+        }
+
+        System.out.print("Enter recipient IBAN: ");
+        String recipientIban = sc.nextLine();
+
+        if (senderIban.equals(recipientIban)) {
+            System.out.println("Cannot transfer to the same account.");
+            return;
+        }
+
+        Account recipient = accountManager.findByIban(recipientIban);
+        if (recipient == null) {
+            System.out.println("Recipient account not found.");
+            return;
+        }
+
+        System.out.print("Enter amount to transfer: ");
+        double amount = sc.nextDouble();
+        sc.nextLine();
+
+
+        if (amount <= 0) {
+            System.out.println("Amount must be positive.");
+            return;
+        }
+
+        if (sender.getBalance() < amount) {
+            System.out.println("Insufficient balance.");
+            return;
+        }
+
+        System.out.print("Enter transfer reason: ");
+        String reason = sc.nextLine();
+
+        sender.setBalance(sender.getBalance() - amount);
+        recipient.setBalance(recipient.getBalance() + amount);
+
+        updateAccountInFile(sender);
+        updateAccountInFile(recipient);
+
+        recordTransaction(sender, "Transfer to " + recipientIban + " - " + reason, -amount);
+        recordTransaction(recipient, "Transfer from " + senderIban + " - " + reason, amount);
+
+        System.out.printf("Transferred %.2f successfully to %s.\n", amount, recipientIban);
+        System.out.printf("Sender new balance: %.2f\n", sender.getBalance());
     }
 
     // enimerwsi tis grammis tou arxeiou mono tou account pou ekane login
@@ -84,6 +143,25 @@ public class TransactionManager {
             }
         } catch (IOException e) {
             System.out.println("Error writing file: " + e.getMessage());
+        }
+    }
+
+    private void recordTransaction(Account account, String type, double amount) {
+        String transactionRecord = String.format("%s,%s,%.2f,%.2f\n",
+                java.time.LocalDate.now(),  // Ημερομηνία
+                type,                     // Τύπος συναλλαγής
+                amount,                    // Ποσό
+                account.getBalance()       // Υπόλοιπο
+        );
+
+
+
+        // Καταγραφή της συναλλαγής
+        String statementPath = "data/statements/" + account.getIban() + ".csv";
+        try (FileWriter fw = new FileWriter(statementPath, true)) {
+            fw.write(transactionRecord);
+        } catch (IOException e) {
+            System.out.println("Error recording transaction: " + e.getMessage());
         }
     }
 }

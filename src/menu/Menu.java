@@ -4,6 +4,7 @@ import manager.UserManager;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import model.Account;
@@ -12,12 +13,20 @@ import model.User;
 import manager.TransactionManager;
 import manager.AccountManager;
 import model.Customer;
+import manager.StatementManager;
+import storage.FileStorageManager;
 
 public class Menu {
 
     public void start(){
+
+        AccountManager accountManager = new AccountManager();
+        StatementManager statementsManager = new StatementManager();
+        statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
+
         boolean exit = false;
         Scanner sc = new Scanner(System.in);
+
         while (!exit) {
             System.out.println("Welcome to the TUC Bank Menu");
             System.out.println("===================================");
@@ -151,13 +160,14 @@ public class Menu {
             System.out.println("======================");
             System.out.println("1. Deposit");
             System.out.println("2. Withdraw");
-            System.out.println("3. Back to main menu");
+            System.out.println("3. Transfer");
+            System.out.println("4. Back to main menu");
             System.out.print("Enter your choice: ");
 
             int choice = sc.nextInt();
             sc.nextLine();
 
-            if(choice == 3){
+            if(choice == 4){
                 return;
             }
             Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
@@ -171,6 +181,9 @@ public class Menu {
                     break;
                 case 2:
                     transactionManager.withdraw(selectedAccount.getIban(), sc);
+                    break;
+                case 3:
+                    transactionManager.transfer(selectedAccount.getIban(), sc);
                     break;
                 default:
                     System.out.println("Invalid choice. Try again.");
