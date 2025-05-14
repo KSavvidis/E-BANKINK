@@ -1,6 +1,6 @@
 package menu;
 
-import manager.UserManager;
+import manager.*;
 
 
 import java.util.List;
@@ -10,10 +10,7 @@ import java.util.Scanner;
 import model.Account;
 import model.PersonalAccount;
 import model.User;
-import manager.TransactionManager;
-import manager.AccountManager;
 import model.Customer;
-import manager.StatementManager;
 import storage.FileStorageManager;
 
 public class Menu {
@@ -146,7 +143,8 @@ public class Menu {
 
     private void showTransactionsMenu(User user, Scanner sc) {
         AccountManager accountManager = new AccountManager();
-        TransactionManager transactionManager = new TransactionManager(accountManager);
+        BillManager billManager = new BillManager();
+        TransactionManager transactionManager = new TransactionManager(accountManager,billManager);
 
         if (!accountManager.hasAccounts(user.getVAT())) {
             System.out.println("You don't have any accounts to perform transactions on.");
@@ -161,13 +159,14 @@ public class Menu {
             System.out.println("1. Deposit");
             System.out.println("2. Withdraw");
             System.out.println("3. Transfer");
-            System.out.println("4. Back to main menu");
+            System.out.println("4. Payment");
+            System.out.println("5. Back to main menu");
             System.out.print("Enter your choice: ");
 
             int choice = sc.nextInt();
             sc.nextLine();
 
-            if(choice == 4){
+            if(choice == 5){
                 return;
             }
             Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
@@ -185,6 +184,8 @@ public class Menu {
                 case 3:
                     transactionManager.transfer(selectedAccount.getIban(), sc);
                     break;
+                case 4:
+                    transactionManager.paymentOrder(selectedAccount.getPrimaryOwner(), sc);
                 default:
                     System.out.println("Invalid choice. Try again.");
             }

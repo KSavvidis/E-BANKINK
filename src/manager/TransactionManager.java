@@ -2,17 +2,22 @@ package manager;
 
 import model.Account;
 import storage.FileStorageManager;
+import model.Bill;
+import manager.BillManager;
 
 import java.io.*;
 import java.util.*;
 
 public class TransactionManager {
     private final AccountManager accountManager;
+    private final BillManager billManager;
+
     private final FileStorageManager storageManager = new FileStorageManager();
     private final String accountsFilePath = "data/accounts/accounts.csv";
 
-    public TransactionManager(AccountManager accountManager) {
+    public TransactionManager(AccountManager accountManager, BillManager billManager) {
         this.accountManager = accountManager;
+        this.billManager = billManager;
     }
 
     public void deposit(String iban, Scanner sc) {
@@ -114,6 +119,59 @@ public class TransactionManager {
 
         System.out.printf("Transferred %.2f successfully to %s.\n", amount, recipientIban);
         System.out.printf("Sender new balance: %.2f\n", sender.getBalance());
+    }
+
+    public void paymentOrder(String vat, Scanner sc) {
+
+        List<Bill> pendingBills = billManager.getBillsForCustomer(vat);
+
+        if (pendingBills.isEmpty()) {
+            System.out.println("You have no bills to pay.");
+            return;
+        }
+
+        System.out.println("Pending bills:");
+        for (int i = 0; i < pendingBills.size(); i++) {
+            Bill bill = pendingBills.get(i);
+            System.out.printf("%d. RF: %s | Amount: %.2f | Due: %s | Issuer: %s\n",
+                    i + 1, bill.getPaymentCode(), bill.getAmount(), bill.getDueDate(), bill.getIssuer());
+        }
+
+
+        System.out.print("Select bill to pay (1-" + pendingBills.size() + "): ");
+        int billChoice = sc.nextInt();
+        sc.nextLine();
+
+        if (billChoice < 1 || billChoice > pendingBills.size()) {
+            System.out.println("Invalid choice.");
+            return;
+        }
+
+        Bill selectedBill = pendingBills.get(billChoice - 1);
+
+
+        Account selectedAccount = accountManager.selectAccountByUser(sc, vat);
+        if (selectedAccount == null) {
+            System.out.println("No account selected. Aborting payment.");
+            return;
+        }
+
+
+        if (selectedAccount.getBalance() < selectedBill.getAmount()) {
+            System.out.println("Insufficient funds in the selected account.");
+            return;
+        }
+
+
+        selectedAccount.setBalance(selectedAccount.getBalance() - selectedBill.getAmount());
+        System.out.printf("Payment of %.2f for bill %s completed. New account balance: %.2f\n",
+                selectedBill.getAmount(), selectedBill.getPaymentCode(), selectedAccount.getBalance());
+
+
+        updateAccountInFile(selectedAccount);
+
+
+        recordTransaction(selectedAccount, "Bill Payment", -selectedBill.getAmount());
     }
 
     // enimerwsi tis grammis tou arxeiou mono tou account pou ekane login
