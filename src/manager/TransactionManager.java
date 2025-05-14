@@ -121,7 +121,7 @@ public class TransactionManager {
         System.out.printf("Sender new balance: %.2f\n", sender.getBalance());
     }
 
-    public void paymentOrder(String vat, Scanner sc) {
+    public void paymentOrder(String iban, String vat, Scanner sc) {
 
         List<Bill> pendingBills = billManager.getBillsForCustomer(vat);
 
@@ -137,7 +137,6 @@ public class TransactionManager {
                     i + 1, bill.getPaymentCode(), bill.getAmount(), bill.getDueDate(), bill.getIssuer());
         }
 
-
         System.out.print("Select bill to pay (1-" + pendingBills.size() + "): ");
         int billChoice = sc.nextInt();
         sc.nextLine();
@@ -149,19 +148,16 @@ public class TransactionManager {
 
         Bill selectedBill = pendingBills.get(billChoice - 1);
 
-
-        Account selectedAccount = accountManager.selectAccountByUser(sc, vat);
+        Account selectedAccount = accountManager.findByIban(iban);
         if (selectedAccount == null) {
             System.out.println("No account selected. Aborting payment.");
             return;
         }
 
-
         if (selectedAccount.getBalance() < selectedBill.getAmount()) {
             System.out.println("Insufficient funds in the selected account.");
             return;
         }
-
 
         selectedAccount.setBalance(selectedAccount.getBalance() - selectedBill.getAmount());
         System.out.printf("Payment of %.2f for bill %s completed. New account balance: %.2f\n",

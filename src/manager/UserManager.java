@@ -1,10 +1,7 @@
 package manager;
 
 import menu.Menu;
-import model.User;
-import model.Individual;
-import model.Admin;
-import model.Company;
+import model.*;
 import storage.FileStorageManager;
 import java.io.BufferedReader;
 import java.io.File;
@@ -70,6 +67,79 @@ public class UserManager {
                 return null;
         }
     }
+
+    public void showCustomers(Scanner sc){
+        FileStorageManager storageManager = new FileStorageManager();
+        List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
+        System.out.println("Customers");
+        System.out.println("===================================");
+        int i = 0;
+        for(Map<String, String> userMap : userData) {
+            String type = userMap.get("type");
+
+            if(type.equals("Individual") || type.equals("Company")){
+                String legalName = userMap.get("legalName");
+                String vatNumber = userMap.get("vatNumber");
+                System.out.printf("%2d. [%s]: %s (%s)\n",i,type,legalName,vatNumber);
+                i++;
+            }
+        }
+        System.out.println("Press any key to continue...");
+        sc.nextLine();
+    }
+
+    public void showCustomerInfo(Scanner sc){
+        FileStorageManager storageManager = new FileStorageManager();
+        List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
+        AccountManager accountManager = new AccountManager();
+        String userName = "";
+        String legalName = "";
+        boolean found = false;
+        System.out.println("Enter the VAT number of the user:");
+        String userVatNumber = sc.next();
+        sc.nextLine();
+        for(Map<String, String> userMap : userData) {
+            if ("Company".equals(userMap.get("type")) || "Individual".equals(userMap.get("type"))) {
+                String bufferVatNumber = userMap.get("vatNumber");
+                if (bufferVatNumber.equals(userVatNumber)) {
+                    legalName = userMap.get("legalName");
+                    userName = userMap.get("userName");
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if(!found){
+            System.out.println("VAT number not found.");
+            return;
+        }
+        System.out.println("Customer Information:");
+        System.out.println("------------------------------------");
+        System.out.println("Legal Name: " + legalName);
+        System.out.println("VAT number: " + userVatNumber);
+        System.out.println("Username: " + userName);
+        System.out.println("------------------------------------");
+        if(accountManager.getAllAccounts().isEmpty()){
+            System.out.println("No accounts found.");
+        }
+        else {
+            List<Account> allAccounts = accountManager.getAllAccounts();
+            for (Account acc : allAccounts) {
+                    boolean isPrimary = userVatNumber.equals(acc.getPrimaryOwner());
+                    boolean isCoOwner = acc.getCoOwner() != null && acc.getCoOwner().contains(userVatNumber);
+
+                    if (isPrimary || isCoOwner) {
+                        String role = isPrimary ? "Primary Owner" : "Co-Owner";
+                        System.out.printf(" IBAN: %-22s Balance: %10.2f  [%s]\n", acc.getIban(), acc.getBalance(), role);
+                    }
+                }
+
+            System.out.println("------------------------------------");
+        }
+        System.out.println("Press any key to continue...");
+        sc.nextLine();
+    }
+
 
     private User createUser(String userName, String password, String legalName, String type, String VAT) {
         switch (type) {
