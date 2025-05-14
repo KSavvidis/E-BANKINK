@@ -199,30 +199,45 @@ public class Menu {
     }
 
     private void showAdminMenu(Scanner sc){
-        System.out.println("Admin Menu");
-        System.out.println("===================================");
-        System.out.println("1. Customers");
-        System.out.println("2. Bank Accounts");
-        System.out.println("3. Company Bills");
-        System.out.println("5. List Standing Orders");
-        System.out.println("6. Pay Customer's Bills");
-        System.out.println("7. Simulate Time Passing");
-        System.out.println("8. Back to login screen");
-        System.out.print("Enter your choice:");
+        boolean exit = false;
+        while(!exit) {
+            System.out.println("Admin Menu");
+            System.out.println("===================================");
+            System.out.println("1. Customers");
+            System.out.println("2. Bank Accounts");
+            System.out.println("3. Company Bills");
+            System.out.println("5. List Standing Orders");
+            System.out.println("6. Pay Customer's Bills");
+            System.out.println("7. Simulate Time Passing");
+            System.out.println("8. Back to login screen");
+            System.out.print("Enter your choice:");
 
-        int choice;
-        if(sc.hasNextInt()){
-            choice = sc.nextInt();
-            switch(choice){
-                case 1:
-                    showCustomerMenu(sc);
-                    break;
+            int choice;
+            if (sc.hasNextInt()) {
+                choice = sc.nextInt();
+                switch (choice) {
+                    case 1:
+                        showCustomerMenu(sc);
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                    case 5:
+                        break;
+                    case 6:
+                        break;
+                    case 7:
+                        break;
+                    case 8:
+                        exit = true;
+                }
+            } else {
+                System.out.println("Please enter a valid choice. Try again.");
+                sc.next();
             }
-        }
-        else {
-            System.out.println("Please enter a valid choice. Try again.");
-            sc.next();
-            showAdminMenu(sc);
         }
     }
 
