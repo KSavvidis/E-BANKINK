@@ -2,6 +2,7 @@ package transaction;
 
 import manager.TransactionManager;
 import model.Account;
+import model.User;
 
 import java.util.Scanner;
 
@@ -14,6 +15,6 @@ public class PaymentOrderTransaction implements Transaction {
 
     @Override
     public void execute(Account account, Scanner sc) {
-        transactionManager.performPaymentOrder(account, sc);
+        transactionManager.performPaymentOrder(account.getIban(), account.getPrimaryOwner(), sc);
     }
 }

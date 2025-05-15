@@ -14,6 +14,6 @@ public class WithdrawTransaction implements Transaction {
 
     @Override
     public void execute(Account account, Scanner sc) {
-        transactionManager.performWithdraw(account, sc);
+        transactionManager.performWithdraw(account.getIban(), sc);
     }
 }

@@ -13,7 +13,6 @@ public class DepositTransaction implements Transaction {
     }
 
     @Override
-    public void execute(Account account, Scanner sc) {
-        transactionManager.performDeposit(account, sc);
+    public void execute(Account account, Scanner sc) { transactionManager.performDeposit(account.getIban(), sc);
     }
 }

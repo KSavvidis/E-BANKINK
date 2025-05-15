@@ -12,6 +12,7 @@ import model.PersonalAccount;
 import model.User;
 import model.Customer;
 import storage.FileStorageManager;
+import transaction.*;
 
 public class Menu {
 
@@ -174,26 +175,36 @@ public class Menu {
             if(choice == 5){
                 return;
             }
+
+            Transaction transaction = null;
+            switch (choice) {
+                case 1:
+                    //transactionManager.deposit(selectedAccount.getIban(), sc);
+                    transaction = new DepositTransaction(transactionManager);
+                    break;
+                case 2:
+                    //transactionManager.performWithdraw(selectedAccount.getIban(), sc);
+                    transaction = new WithdrawTransaction(transactionManager);
+                    break;
+                case 3:
+                    //transactionManager.transfer(selectedAccount.getIban(), sc);
+                    transaction = new TransferTransaction(transactionManager);
+                    break;
+                case 4:
+                   // transactionManager.paymentOrder(selectedAccount.getIban(), selectedAccount.getPrimaryOwner(), sc);
+                    transaction = new PaymentOrderTransaction(transactionManager);
+                    break;
+                default:
+                    System.out.println("Invalid choice. Try again.");
+                    continue;
+            }
             Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
             if (selectedAccount == null) {
                 continue;
             }
 
-            switch (choice) {
-                case 1:
-                    transactionManager.deposit(selectedAccount.getIban(), sc);
-                    break;
-                case 2:
-                    transactionManager.withdraw(selectedAccount.getIban(), sc);
-                    break;
-                case 3:
-                    transactionManager.transfer(selectedAccount.getIban(), sc);
-                    break;
-                case 4:
-                    transactionManager.paymentOrder(selectedAccount.getIban(), selectedAccount.getPrimaryOwner(), sc);
-                    break;
-                default:
-                    System.out.println("Invalid choice. Try again.");
+            if (transaction != null) {
+                transaction.execute(selectedAccount, sc);
             }
         }
     }

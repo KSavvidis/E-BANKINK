@@ -14,6 +14,6 @@ public class TransferTransaction implements Transaction{
 
     @Override
     public void execute(Account account, Scanner sc) {
-        transactionManager.performTransfer(account, sc);
+        transactionManager.performTransfer(account.getIban(), sc);
     }
 }

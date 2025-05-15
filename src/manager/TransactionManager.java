@@ -20,7 +20,7 @@ public class TransactionManager {
         this.billManager = billManager;
     }
 
-    public void deposit(String iban, Scanner sc) {
+    public void performDeposit(String iban, Scanner sc) {
         Account account = accountManager.findByIban(iban);
         if (account == null) {
             System.out.println("Account not found.");
@@ -44,7 +44,7 @@ public class TransactionManager {
         System.out.printf("Deposited %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
 
-    public void withdraw(String iban, Scanner sc) {
+    public void performWithdraw(String iban, Scanner sc) {
         Account account = accountManager.findByIban(iban);
         if (account == null) {
             System.out.println("Account not found.");
@@ -68,7 +68,7 @@ public class TransactionManager {
         System.out.printf("Withdrew %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
 
-    public void transfer(String senderIban, Scanner sc) {
+    public void performTransfer(String senderIban, Scanner sc) {
         //idio opws deposit
         Account sender = accountManager.findByIban(senderIban);
         if (sender == null) {
@@ -121,7 +121,7 @@ public class TransactionManager {
         System.out.printf("Sender new balance: %.2f\n", sender.getBalance());
     }
 
-    public void paymentOrder(String iban, String vat, Scanner sc) {
+    public void performPaymentOrder(String iban, String vat, Scanner sc) {
 
         List<Bill> pendingBills = billManager.getBillsForCustomer(vat);
 
