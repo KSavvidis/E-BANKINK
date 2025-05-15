@@ -202,15 +202,14 @@ public class TransactionManager {
 
     private void recordTransaction(Account account, String type, double amount) {
         String transactionRecord = String.format("%s,%s,%.2f,%.2f\n",
-                java.time.LocalDate.now(),  // Ημερομηνία
-                type,                     // Τύπος συναλλαγής
-                amount,                    // Ποσό
-                account.getBalance()       // Υπόλοιπο
+                java.time.LocalDate.now(),
+                type,                     //typos synalagis
+                amount,
+                account.getBalance()
         );
 
 
 
-        // Καταγραφή της συναλλαγής
         String statementPath = "data/statements/" + account.getIban() + ".csv";
         try (FileWriter fw = new FileWriter(statementPath, true)) {
             fw.write(transactionRecord);

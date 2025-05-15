@@ -1,24 +1,92 @@
 package manager;
 
-import menu.Menu;
+
 import model.*;
 import storage.FileStorageManager;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import storage.Storable;
+
+
+
+import java.util.*;
 
 
 public class UserManager {
 
-    private String fileUserName;
-    private String filePassword;
-    private String fileLegalName;
-    private String fileType;
-    private String fileVAT;
+
+    private final FileStorageManager storageManager = new FileStorageManager();
+    private final List<User> users = new ArrayList<>();
+
+
+
+    public void loadUsers() {
+        Storable loader = new Storable() {
+
+            @Override
+            public String marshal() {
+                return null;
+            }
+
+            @Override
+            public void unmarshal(String data) {
+                Map<String, String> map = new HashMap<>();
+                String[] parts = data.split(",");
+
+                for (String part : parts) {
+                    String[] keyValuePair = part.split(":", 2);  // xwrizoume to key kai to value
+                    if (keyValuePair.length == 2) {
+                        String key = keyValuePair[0].trim();
+                        String value = keyValuePair[1].trim();
+                        map.put(key, value);
+                    }
+                }
+
+                String type = map.get("type");
+                if (type == null) return;
+
+                try {
+                    User user = null;
+
+                    switch (type) {
+                        case "Admin":
+                            user = new Admin(
+                                    map.get("userName"),
+                                    map.get("password"),
+                                    map.get("legalName"),
+                                    map.get("type")
+                            );
+                            break;
+                        case "Individual":
+                            user = new Individual(
+                                    map.get("userName"),
+                                    map.get("password"),
+                                    map.get("legalName"),
+                                    map.get("type"),
+                                    map.get("vatNumber")
+                            );
+                            break;
+                        case "Company":
+                            user = new Company(
+                                    map.get("userName"),
+                                    map.get("password"),
+                                    map.get("legalName"),
+                                    map.get("type"),
+                                    map.get("vatNumber")
+                            );
+                            break;
+                    }
+
+                    if (user != null) users.add(user);
+
+                } catch (Exception e) {
+                    System.out.println("Lathos sto fortwma xristi: " + e.getMessage());
+                }
+            }
+        };
+
+        // fortwsi apo to arxeio xristwn
+        storageManager.load(loader, "data/users/users.csv");
+    }
+
 
     public User authenticate() {
         Scanner sc = new Scanner(System.in);
@@ -28,58 +96,43 @@ public class UserManager {
         System.out.print("Password: ");
         String bufferPassword = sc.next();
 
-        // ftiaxnetai antikeimneo FileStorageManager gia na diavasei dedomena apo to arxeio
-        FileStorageManager storageManager = new FileStorageManager();
-        //fortwnei ta dedomena apo to users.csv
-        List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
+        // Fortwnoume tous xristes apo to arxeio an den exoun idi fortwthei
+        if (users.isEmpty()) {
+            loadUsers();
+        }
 
-        for (Map<String, String> userMap : userData) {
-            String fileUsername = userMap.get("userName");
-            String filePassword = userMap.get("password");
+        for (User user : users) {
+            if (user.getUserName().equals(bufferUserName) && user.getPassword().equals(bufferPassword)) {
 
-            if (bufferUserName.equals(fileUsername) && bufferPassword.equals(filePassword)) {
-                this.fileUserName = fileUsername;
-                this.filePassword = filePassword;
-                this.fileLegalName = userMap.get("legalName");
-                this.fileType = userMap.get("type");
-                this.fileVAT = userMap.get("vatNumber");
-                System.out.println("Authentication successful. Welcome, " + fileLegalName + "!");
-                if(fileType.equals("Admin")) {
-                    return createUser(fileUserName, filePassword, fileLegalName, fileType, null);
-                }
-                return createUser(fileUserName, filePassword, fileLegalName, fileType, fileVAT);
+                System.out.println("Authentication successful. Welcome, " + user.getLegalName() + "!");
+                return user;
             }
         }
+
         System.out.println("Authentication failed. Invalid username or password.");
         return null;
     }
 
-    public User getUser(String type) {
-        switch (type) {
-            case "Individual":
-                return new Individual(fileUserName, filePassword, fileLegalName, fileType, fileVAT);
-            case "Admin":
-                return new Admin(fileUserName, filePassword, fileLegalName, fileType);
-            case "Company":
-                return new Company(fileUserName, filePassword, fileLegalName, fileType, fileVAT);
-            default:
-                System.out.println("Invalid user type.");
-                return null;
-        }
+    public List<User> getAllUsers() {
+        return users;
     }
 
     public void showCustomers(Scanner sc){
-        FileStorageManager storageManager = new FileStorageManager();
-        List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
+
+
+        if(users.isEmpty()) {
+            loadUsers();
+        }
         System.out.println("Customers");
         System.out.println("===================================");
-        int i = 0;
-        for(Map<String, String> userMap : userData) {
-            String type = userMap.get("type");
+        int i = 1;
+        for(User user : users) {
+            String type = user.getType();
+
 
             if(type.equals("Individual") || type.equals("Company")){
-                String legalName = userMap.get("legalName");
-                String vatNumber = userMap.get("vatNumber");
+                String legalName = user.getLegalName();
+                String vatNumber = user.getVAT();
                 System.out.printf("%2d. [%s]: %s (%s)\n",i,type,legalName,vatNumber);
                 i++;
             }
@@ -89,8 +142,11 @@ public class UserManager {
     }
 
     public void showCustomerInfo(Scanner sc){
-        FileStorageManager storageManager = new FileStorageManager();
-        List<Map<String, String>> userData = storageManager.getUsersFromFile("data/users/users.csv");
+
+        if(users.isEmpty()) {
+            loadUsers();
+        }
+
         AccountManager accountManager = new AccountManager();
         String userName = "";
         String legalName = "";
@@ -98,12 +154,12 @@ public class UserManager {
         System.out.println("Enter the VAT number of the user:");
         String userVatNumber = sc.next();
         sc.nextLine();
-        for(Map<String, String> userMap : userData) {
-            if ("Company".equals(userMap.get("type")) || "Individual".equals(userMap.get("type"))) {
-                String bufferVatNumber = userMap.get("vatNumber");
+        for(User user : users) {
+            if ("Company".equals(user.getType()) || "Individual".equals(user.getType())) {
+                String bufferVatNumber = user.getVAT();
                 if (bufferVatNumber.equals(userVatNumber)) {
-                    legalName = userMap.get("legalName");
-                    userName = userMap.get("userName");
+                    legalName = user.getLegalName();
+                    userName = user.getUserName();
                     found = true;
                     break;
                 }

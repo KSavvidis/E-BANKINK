@@ -15,6 +15,7 @@ public class AccountManager {
     private final FileStorageManager storageManager = new FileStorageManager();
     private final String accountsFilePath = "data/accounts/accounts.csv";
 
+
     public AccountManager() {
         loadAccounts();//fortwnei account kata tin arxikopoiisi
     }
@@ -120,7 +121,7 @@ public class AccountManager {
         }
 
     public Account selectAccountByUser(Scanner sc, String vat) {
-        List<Account> allAccounts = findByVat(vat); // <- this method should be updated as well to return both owned and co-owned
+        List<Account> allAccounts = findByVat(vat);
 
         if (allAccounts.isEmpty()) {
             System.out.println("No accounts found.");
