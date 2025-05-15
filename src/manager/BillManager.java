@@ -4,90 +4,93 @@ import model.Bill;
 import storage.FileStorageManager;
 import storage.Storable;
 
+import java.io.*;
+import java.time.LocalDate;
 import java.util.*;
-import java.io.File;
-import java.io.FilenameFilter;
 
 public class BillManager {
     private final List<Bill> bills = new ArrayList<>();
     private final FileStorageManager storageManager = new FileStorageManager();
-    private final String billsFilePath = "data/bills/2025-05-01.csv";
+
+    private final String billsFolderPath = "data/bills/";
+    private final String issuedFilePath = billsFolderPath + "issued.csv";
 
     public BillManager() {
-        loadBills();
+        // Αν θέλεις να φορτώνονται μόνο με ρητή εντολή, αφαίρεσε το:
+        loadBillsForToday();
     }
 
-    public void loadBills() {
-        // O fakelos pou periexei ta arxeia twn logariasmwn
-        File billsDirectory = new File("data/bills");
+    public void loadBillsForToday() {
+        loadBillsForDate(LocalDate.now());
+    }
 
-        // Elegxos an yparxei o fakelos kai an einai pragmatika fakelos
-        if (!billsDirectory.exists() || !billsDirectory.isDirectory()) {
-            System.out.println("Den vrethike o fakelos logariasmwn h den einai fakelos.");
+    public void loadBillsForDate(LocalDate date) {
+        String filename = date.toString() + ".csv";
+        File billFile = new File(billsFolderPath + filename);
+
+        if (!billFile.exists()) {
+            System.out.println("No bills found for: " + date);
             return;
         }
 
-        // Filtraroume ola ta .csv arxeia xwris xrhsh lambdas
-        FilenameFilter csvFilter = new FilenameFilter() {
+        List<String> rawLines = new ArrayList<>();
+
+        Storable billLoader = new Storable() {
             @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".csv");
+            public String marshal() {
+                return null;
+            }
+
+            @Override
+            public void unmarshal(String line) {
+                rawLines.add(line);
+
+                Map<String, String> billFields = new HashMap<>();
+                String[] fields = line.split(",");
+
+                for (String field : fields) {
+                    String[] keyValue = field.split(":", 2);
+                    if (keyValue.length == 2) {
+                        billFields.put(keyValue[0].trim(), keyValue[1].trim());
+                    }
+                }
+
+                try {
+                    Bill bill = new Bill(
+                            billFields.get("type"),
+                            billFields.get("paymentCode"),
+                            billFields.get("billNumber"),
+                            billFields.get("issuer"),
+                            billFields.get("customer"),
+                            Double.parseDouble(billFields.get("amount")),
+                            billFields.get("issueDate"),
+                            billFields.get("dueDate")
+                    );
+                    bills.add(bill);
+                } catch (Exception e) {
+                    System.out.println("Error parsing bill from line: " + line);
+                }
             }
         };
 
-        File[] billFiles = billsDirectory.listFiles(csvFilter);
+        storageManager.load(billLoader, billFile.getPath());
+        appendToIssuedCsv(rawLines);
+    }
 
-        if (billFiles == null || billFiles.length == 0) {
-            System.out.println("Den vrethikan CSV arxeia ston fakelo logariasmwn.");
-            return;
-        }
+    private void appendToIssuedCsv(List<String> lines) {
+        File issuedFile = new File(issuedFilePath);
 
-        // Gia kathe arxeio logariasmou fortwnoume ta dedomena tou
-        for (File billFile : billFiles) {
-
-            Storable billLoader = new Storable() {
-                @Override
-                public String marshal() {
-                    return null;
-                }
-
-                @Override
-                public void unmarshal(String line) {
-                    // Analysi grammis se key-value pairs
-                    Map<String, String> billFields = new HashMap<>();
-                    String[] fields = line.split(",");
-
-                    for (String field : fields) {
-                        String[] keyValue = field.split(":", 2);
-                        if (keyValue.length == 2) {
-                            billFields.put(keyValue[0].trim(), keyValue[1].trim());
-                        }
-                    }
-
-                    try {
-                        Bill bill = new Bill(
-                                billFields.get("type"),
-                                billFields.get("paymentCode"),
-                                billFields.get("billNumber"),
-                                billFields.get("issuer"),
-                                billFields.get("customer"),
-                                Double.parseDouble(billFields.get("amount")),
-                                billFields.get("issueDate"),
-                                billFields.get("dueDate")
-                        );
-                        bills.add(bill);
-                    } catch (Exception e) {
-                        System.out.println("Lathos kata to parsing tou logariasmou sto arxeio '" + billFile.getName() + "': " + e.getMessage());
-                    }
-                }
-            };
-
-            // Fortwsi arxeiou me ton storage manager
-            storageManager.load(billLoader, billFile.getPath());
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(issuedFile, true))) {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+            }
+            System.out.println("Added " + lines.size() + " bills to issued.csv");
+        } catch (IOException e) {
+            System.out.println("Failed to write to issued.csv: " + e.getMessage());
         }
     }
 
-    // Epistrefei lista logariasmwn gia sigkekrimeno pelati (VAT)
     public List<Bill> getBillsForCustomer(String vat) {
         List<Bill> result = new ArrayList<>();
         for (Bill bill : bills) {

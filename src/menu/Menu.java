@@ -18,6 +18,7 @@ public class Menu {
 
     public void start(){
 
+        BillManager billManager = new BillManager();
         AccountManager accountManager = new AccountManager();
         StatementManager statementsManager = new StatementManager();
         statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
@@ -241,6 +242,7 @@ public class Menu {
                     case 6:
                         break;
                     case 7:
+
                         break;
                     case 8:
                         exit = true;
