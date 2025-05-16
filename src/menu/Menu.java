@@ -212,6 +212,7 @@ public class Menu {
 
     private void showAdminMenu(Scanner sc){
         boolean exit = false;
+        TimeSimulator timeSimulator = new TimeSimulator()
         while(!exit) {
             System.out.println("Admin Menu");
             System.out.println("===================================");

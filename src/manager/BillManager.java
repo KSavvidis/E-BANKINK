@@ -14,6 +14,7 @@ public class BillManager {
 
     private final String billsFolderPath = "data/bills/";
     private final String issuedFilePath = billsFolderPath + "issued.csv";
+    private final String expiredFilePath = billsFolderPath + "expired.csv";
 
     public BillManager() {
         // Αν θέλεις να φορτώνονται μόνο με ρητή εντολή, αφαίρεσε το:
@@ -25,15 +26,15 @@ public class BillManager {
     }
 
     public void loadBillsForDate(LocalDate date) {
-        String filename = date.toString() + ".csv";
-        File billFile = new File(billsFolderPath + filename);
+        String filename = billsFolderPath + date.toString() + ".csv";
+        File billFile = new File(filename);
+        List<String> billIssued = new ArrayList<>();
+        List<String> billExpired = new ArrayList<>();
 
         if (!billFile.exists()) {
-            System.out.println("No bills found for: " + date);
+            System.out.println("No bills found for today.");
             return;
         }
-
-        List<String> rawLines = new ArrayList<>();
 
         Storable billLoader = new Storable() {
             @Override
@@ -43,8 +44,6 @@ public class BillManager {
 
             @Override
             public void unmarshal(String line) {
-                rawLines.add(line);
-
                 Map<String, String> billFields = new HashMap<>();
                 String[] fields = line.split(",");
 
@@ -67,31 +66,36 @@ public class BillManager {
                             billFields.get("dueDate")
                     );
                     bills.add(bill);
+                    LocalDate dueDate = LocalDate.parse(bill.getDueDate());
+                    if(dueDate.isBefore(LocalDate.now())) {
+                        billExpired.add(bill.getDueDate());
+                    }
+                    else{
+                        billIssued.add(bill.getDueDate());
+                    }
                 } catch (Exception e) {
-                    System.out.println("Error parsing bill from line: " + line);
+                    System.out.println("Error: " + e.getMessage());
                 }
             }
         };
-
-        storageManager.load(billLoader, billFile.getPath());
-        appendToIssuedCsv(rawLines);
+        storageManager.load(billLoader,billFile.getPath());
+        loadToBillCsv(issuedFilePath, billIssued);
+        loadToBillCsv(expiredFilePath, billExpired);
     }
 
-    private void appendToIssuedCsv(List<String> lines) {
-        File issuedFile = new File(issuedFilePath);
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(issuedFile, true))) {
+    protected void loadToBillCsv(String filePath, List<String> lines) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
             for (String line : lines) {
                 writer.write(line);
                 writer.newLine();
             }
-            System.out.println("Added " + lines.size() + " bills to issued.csv");
+           // System.out.println("Added " + lines.size() + " bills to issued.csv");
         } catch (IOException e) {
-            System.out.println("Failed to write to issued.csv: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
-    public List<Bill> getBillsForCustomer(String vat) {
+    protected List<Bill> getBillsForCustomer(String vat) {
         List<Bill> result = new ArrayList<>();
         for (Bill bill : bills) {
             if (bill.getCustomer().equals(vat)) {
@@ -100,4 +104,32 @@ public class BillManager {
         }
         return result;
     }
+
+    protected void simulateForExpiry(){
+        List<Bill> expired = new ArrayList<>();
+
+        for (Bill bill : bills) {
+            LocalDate dueDate = LocalDate.parse(bill.getDueDate());
+            if(dueDate.isBefore(LocalDate.now())) {
+                expired.add(bill);
+            }
+        }
+        if(expired.isEmpty()) {
+            return;
+        }
+        File expiredFile = new File(expiredFilePath);
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFile, true)))
+        {
+            for (Bill bill : expired) {
+               writer.write(bill.marshal());
+                writer.newLine();
+            }
+        }
+        catch(IOException e)
+        {
+                System.out.println("Error: " + e.getMessage());
+        }
+        bills.removeAll(expired);
+    }
 }
+

@@ -1,6 +1,11 @@
 package model;
 
-public class Bill {
+import storage.Storable;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Bill implements Storable {
     private String type;
     private String paymentCode;
     private String billNumber;
@@ -42,4 +47,42 @@ public class Bill {
     public void setAmount(double amount) { this.amount = amount; }
     public void setIssueDate(String issueDate) { this.issueDate = issueDate; }
     public void setDueDate(String dueDate) { this.dueDate = dueDate; }
+
+
+    @Override
+    public String marshal() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("type:").append(type)
+                .append(",paymentCode:").append(paymentCode)
+                .append(",billNumber:").append(billNumber)
+                .append(",issuer:").append(issuer)
+                .append(",customer:").append(customer)
+                .append(",amount:").append(String.format("%.2f", amount))
+                .append(",issueDate:").append(issueDate)
+                .append(",dueDate:").append(dueDate);
+        return sb.toString();
+    }
+
+    @Override
+    public void unmarshal(String data) {
+        Map<String, String> fields = new HashMap<>();
+        String[] pairs = data.split(",");
+
+        for (String pair : pairs) {
+            String[] keyValue = pair.split(":", 2);
+            if (keyValue.length == 2) {
+                fields.put(keyValue[0].trim(), keyValue[1].trim());
+            }
+        }
+
+        this.type = fields.get("type");
+        this.paymentCode = fields.get("paymentCode");
+        this.billNumber = fields.get("billNumber");
+        this.issuer = fields.get("issuer");
+        this.customer = fields.get("customer");
+        this.amount = Double.parseDouble(fields.get("amount"));
+        this.issueDate = fields.get("issueDate");
+        this.dueDate = fields.get("dueDate");
+
+    }
 }

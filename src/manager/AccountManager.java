@@ -85,7 +85,7 @@ public class AccountManager {
     //apothikevei oloous tous logariasmous sto arxeio me xrisi tis save apo filestoragemanager
     public void saveAccounts() {
         try {
-            new java.io.PrintWriter(accountsFilePath).close(); // clear
+            new java.io.PrintWriter(accountsFilePath).close(); // clear//ti einai auto re malaka
         } catch (Exception e) {
             System.out.println("Error clearing file: " + e.getMessage());
         }
@@ -160,7 +160,6 @@ public class AccountManager {
         }
         return coOwnedAccounts;
     }
-
 
     public boolean hasAccounts(String vat) {
         return !findByVat(vat).isEmpty();
