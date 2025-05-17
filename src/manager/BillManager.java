@@ -89,10 +89,23 @@ public class BillManager {
     protected void loadToBillCsv(String filePath, List<String> lines) {
         File file=new File(filePath);
 
+        Set<String> existingLines = new HashSet<>();
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    existingLines.add(line);
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading existing file: " + e.getMessage());
+            }
+        }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
             for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
+                if(!existingLines.contains(line)) {
+                    writer.write(line);
+                    writer.newLine();
+                }
             }
            // System.out.println("Added " + lines.size() + " bills to issued.csv");
         } catch (IOException e) {
