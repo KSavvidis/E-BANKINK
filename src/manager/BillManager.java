@@ -3,7 +3,6 @@ package manager;
 import model.Bill;
 import storage.FileStorageManager;
 import storage.Storable;
-import model.Account;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -18,7 +17,6 @@ public class BillManager {
     private final String expiredFilePath = billsFolderPath + "expired.csv";
 
     public BillManager() {
-        // Αν θέλεις να φορτώνονται μόνο με ρητή εντολή, αφαίρεσε το:
         loadBillsForToday();
     }
 
@@ -27,7 +25,7 @@ public class BillManager {
     }
 
     public void loadBillsForDate(LocalDate date) {
-        String filename =   date.toString() + ".csv";
+        String filename = date.toString() + ".csv";
 
         File billFile = new File(billsFolderPath + filename);
         List<String> billIssued = new ArrayList<>();
@@ -45,7 +43,6 @@ public class BillManager {
             }
 
             @Override
-
             public void unmarshal(String line) {
                 Map<String, String> billFields = new HashMap<>();
                 String[] fields = line.split(",");
@@ -79,15 +76,15 @@ public class BillManager {
                     System.out.println("Error: " + e.getMessage());
                 }
             }
-
         };
-        storageManager.load(billLoader,billFile.getPath());
+
+        storageManager.load(billLoader, billFile.getPath());
         loadToBillCsv(issuedFilePath, billIssued);
         loadToBillCsv(expiredFilePath, billExpired);
     }
 
     protected void loadToBillCsv(String filePath, List<String> lines) {
-        File file=new File(filePath);
+        File file = new File(filePath);
 
         Set<String> existingLines = new HashSet<>();
         if (file.exists()) {
@@ -107,7 +104,6 @@ public class BillManager {
                     writer.newLine();
                 }
             }
-           // System.out.println("Added " + lines.size() + " bills to issued.csv");
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -123,30 +119,30 @@ public class BillManager {
         return result;
     }
 
-    protected void simulateForExpiry(){
+    protected void simulateForExpiry() {
         List<Bill> expired = new ArrayList<>();
 
         for (Bill bill : bills) {
             LocalDate dueDate = LocalDate.parse(bill.getDueDate());
-            if(dueDate.isBefore(LocalDate.now())) {
+            if (dueDate.isBefore(LocalDate.now())) {
                 expired.add(bill);
             }
         }
-        if(expired.isEmpty()) {
+
+        if (expired.isEmpty()) {
             return;
         }
+
         File expiredFile = new File(expiredFilePath);
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFile, true)))
-        {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFile, true))) {
             for (Bill bill : expired) {
-               writer.write(bill.marshal());
+                writer.write(bill.marshal());
                 writer.newLine();
             }
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
         }
-        catch(IOException e)
-        {
-                System.out.println("Error: " + e.getMessage());
-        }
+
         bills.removeAll(expired);
     }
 
@@ -183,7 +179,6 @@ public class BillManager {
                             billFields.get("dueDate")
                     );
 
-
                     if (bill.getIssuer().equals(vat)) {
                         issuedBills.add(bill);
                     }
@@ -195,7 +190,6 @@ public class BillManager {
         };
 
         storageManager.load(loader, issuedFilePath);
-
 
         if (issuedBills.isEmpty()) {
             System.out.println("No issued bills found for your company.");
@@ -215,6 +209,4 @@ public class BillManager {
         System.out.println("Press Enter to continue...");
         new Scanner(System.in).nextLine();
     }
-
 }
-
