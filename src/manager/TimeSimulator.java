@@ -5,8 +5,8 @@ import model.Account;
 import java.time.LocalDate;
 
 public class TimeSimulator{
-    private AccountManager accountManager;
-    private BillManager billManager;
+    private final AccountManager accountManager;
+    private final BillManager billManager;
 
     public TimeSimulator(AccountManager accountManager, BillManager billManager){
         this.accountManager = new AccountManager();
@@ -36,7 +36,7 @@ public class TimeSimulator{
     private void rate(){
         for(Account account : accountManager.getAllAccounts()){
             double rate =account.getRate();
-            double interest = account.getBalance() * rate;
+            double interest = account.getBalance() * rate/365.0;
             account.setBalance(account.getBalance() + interest);
         }
     }

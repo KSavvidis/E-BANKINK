@@ -208,8 +208,6 @@ public class TransactionManager {
                 account.getBalance()
         );
 
-
-
         String statementPath = "data/statements/" + account.getIban() + ".csv";
         try (FileWriter fw = new FileWriter(statementPath, true)) {
             fw.write(transactionRecord);

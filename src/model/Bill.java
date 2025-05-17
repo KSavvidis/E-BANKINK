@@ -53,13 +53,13 @@ public class Bill implements Storable {
     public String marshal() {
         StringBuilder sb = new StringBuilder();
         sb.append("type:").append(type)
-                .append(",paymentCode:").append(paymentCode)
-                .append(",billNumber:").append(billNumber)
-                .append(",issuer:").append(issuer)
-                .append(",customer:").append(customer)
-                .append(",amount:").append(String.format("%.2f", amount))
-                .append(",issueDate:").append(issueDate)
-                .append(",dueDate:").append(dueDate);
+        .append(",paymentCode:").append(paymentCode)
+        .append(",billNumber:").append(billNumber)
+        .append(",issuer:").append(issuer)
+        .append(",customer:").append(customer)
+        .append(",amount:").append(String.format("%.2f", amount))
+        .append(",issueDate:").append(issueDate)
+        .append(",dueDate:").append(dueDate);
         return sb.toString();
     }
 
