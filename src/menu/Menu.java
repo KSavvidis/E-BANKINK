@@ -18,7 +18,7 @@ public class Menu {
 
     public void start(){
 
-        BillManager billManager = new BillManager();
+
         AccountManager accountManager = new AccountManager();
         StatementManager statementsManager = new StatementManager();
         statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
@@ -72,7 +72,7 @@ public class Menu {
                         break;
                     case "Company":
                         exit = true;
-                        showCompanyMenu(sc);
+                        showCompanyMenu(user,sc);
                         break;
                     default:
                         System.out.println("Unknown user type.");
@@ -212,7 +212,7 @@ public class Menu {
 
     private void showAdminMenu(Scanner sc){
         boolean exit = false;
-        TimeSimulator timeSimulator = new TimeSimulator()
+        TimeSimulator timeSimulator = new TimeSimulator();
         while(!exit) {
             System.out.println("Admin Menu");
             System.out.println("===================================");
@@ -255,8 +255,35 @@ public class Menu {
         }
     }
 
-    private void showCompanyMenu(Scanner sc){
-        System.out.println("Company Menu");
+    private void showCompanyMenu(User user,Scanner sc){
+        boolean exit = false;
+
+        while(!exit) {
+            System.out.println("Company Menu");
+            System.out.println("===================================");
+            System.out.println("1. Overview");
+            System.out.println("2. Bills");
+            System.out.println("3. Back to login screen");
+            System.out.print("Enter your choice:");
+
+            int choice;
+            if (sc.hasNextInt()) {
+                choice = sc.nextInt();
+                switch (choice) {
+                    case 1:
+                        showOverviewMenu(user, sc);
+                        break;
+                    case 2:
+                        showBillMenu(user,sc);
+                        break;
+                    case 3:
+                        exit = true;
+                }
+            } else {
+                System.out.println("Please enter a valid choice. Try again.");
+                sc.next();
+            }
+        }
     }
 
     private void showCustomerMenu(Scanner sc){
@@ -294,6 +321,42 @@ public class Menu {
             else {
                 System.out.println("Please enter a valid choice. Try again.");
             }
+        }
+    }
+
+    private void showBillMenu(User user,Scanner sc){
+        BillManager billManager = new BillManager();
+        AccountManager accountManager = new AccountManager();
+
+
+        while(true) {
+            System.out.println("Bill Menu");
+            System.out.println("===================================");
+            System.out.println("1. Load Issued Bills");
+            System.out.println("2. Show Paid Bills");
+            System.out.println("3. Back to Admin Menu");
+            System.out.print("Enter your choice:");
+            int choice;
+            if (sc.hasNextInt()) {
+                choice = sc.nextInt();
+                sc.nextLine();
+
+                if(choice == 3){
+                    return;
+                }
+
+                switch (choice) {
+                    case 1:
+                        billManager.loadIssuedBills(user.getVAT());
+                        break;
+                    case 2:
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Try again.");
+
+                }
+            }
+
         }
     }
 }

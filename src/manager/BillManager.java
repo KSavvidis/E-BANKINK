@@ -3,6 +3,7 @@ package manager;
 import model.Bill;
 import storage.FileStorageManager;
 import storage.Storable;
+import model.Account;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -131,5 +132,72 @@ public class BillManager {
         }
         bills.removeAll(expired);
     }
+
+    public void loadIssuedBills(String vat) {
+        List<Bill> issuedBills = new ArrayList<>();
+
+        Storable loader = new Storable() {
+            @Override
+            public String marshal() {
+                return null;
+            }
+
+            @Override
+            public void unmarshal(String line) {
+                Map<String, String> billFields = new HashMap<>();
+                String[] fields = line.split(",");
+
+                for (String field : fields) {
+                    String[] keyValue = field.split(":", 2);
+                    if (keyValue.length == 2) {
+                        billFields.put(keyValue[0].trim(), keyValue[1].trim());
+                    }
+                }
+
+                try {
+                    Bill bill = new Bill(
+                            billFields.get("type"),
+                            billFields.get("paymentCode"),
+                            billFields.get("billNumber"),
+                            billFields.get("issuer"),
+                            billFields.get("customer"),
+                            Double.parseDouble(billFields.get("amount")),
+                            billFields.get("issueDate"),
+                            billFields.get("dueDate")
+                    );
+
+
+                    if (bill.getIssuer().equals(vat)) {
+                        issuedBills.add(bill);
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error loading bill: " + e.getMessage());
+                }
+            }
+        };
+
+        storageManager.load(loader, issuedFilePath);
+
+
+        if (issuedBills.isEmpty()) {
+            System.out.println("No issued bills found for your company.");
+        } else {
+            System.out.println("\nIssued Bills:");
+            System.out.println("======================================================");
+            for (Bill bill : issuedBills) {
+                System.out.printf(
+                        "Type: %-10s | Code: %-10s | Amount: %8.2f | Customer: %-10s | Date: %s | Due: %s\n",
+                        bill.getType(), bill.getPaymentCode(), bill.getAmount(),
+                        bill.getCustomer(), bill.getIssueDate(), bill.getDueDate()
+                );
+            }
+            System.out.println("======================================================");
+        }
+
+        System.out.println("Press Enter to continue...");
+        new Scanner(System.in).nextLine();
+    }
+
 }
 
