@@ -18,10 +18,26 @@ public class Menu {
 
     public void start(){
 
-
+        UserManager userManager = new UserManager();
+        BillManager billManager = new BillManager();
         AccountManager accountManager = new AccountManager();
         StatementManager statementsManager = new StatementManager();
         statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
+
+        // Load data from storage
+        userManager.loadUsers();
+        System.out.println("✅ All users loaded.");
+
+        accountManager.loadAccounts();
+        System.out.println("✅ All accounts loaded.");
+
+        statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
+        System.out.println("✅ Statements initialized for all accounts.");
+
+        billManager.loadBillsForToday();  // <- θα πρέπει να έχεις ή να προσθέσεις αυτή τη μέθοδο στο BillManager
+        System.out.println("✅ All bills loaded.");
+
+        System.out.println("System initialization complete.\n");
 
         boolean exit = false;
         Scanner sc = new Scanner(System.in);
@@ -212,7 +228,7 @@ public class Menu {
 
     private void showAdminMenu(Scanner sc){
         boolean exit = false;
-        TimeSimulator timeSimulator = new TimeSimulator();
+        //TimeSimulator timeSimulator = new TimeSimulator();
         while(!exit) {
             System.out.println("Admin Menu");
             System.out.println("===================================");

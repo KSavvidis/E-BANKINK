@@ -27,8 +27,9 @@ public class BillManager {
     }
 
     public void loadBillsForDate(LocalDate date) {
-        String filename = billsFolderPath + date.toString() + ".csv";
-        File billFile = new File(filename);
+        String filename =   date.toString() + ".csv";
+
+        File billFile = new File(billsFolderPath + filename);
         List<String> billIssued = new ArrayList<>();
         List<String> billExpired = new ArrayList<>();
 
@@ -44,6 +45,7 @@ public class BillManager {
             }
 
             @Override
+
             public void unmarshal(String line) {
                 Map<String, String> billFields = new HashMap<>();
                 String[] fields = line.split(",");
@@ -68,16 +70,16 @@ public class BillManager {
                     );
                     bills.add(bill);
                     LocalDate dueDate = LocalDate.parse(bill.getDueDate());
-                    if(dueDate.isBefore(LocalDate.now())) {
-                        billExpired.add(bill.getDueDate());
-                    }
-                    else{
-                        billIssued.add(bill.getDueDate());
+                    if (dueDate.isBefore(LocalDate.now())) {
+                        billExpired.add(line);  // ΜΟΝΟ expired
+                    } else {
+                        billIssued.add(line);   // ΜΟΝΟ μη-expired
                     }
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
                 }
             }
+
         };
         storageManager.load(billLoader,billFile.getPath());
         loadToBillCsv(issuedFilePath, billIssued);
@@ -85,7 +87,9 @@ public class BillManager {
     }
 
     protected void loadToBillCsv(String filePath, List<String> lines) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+        File file=new File(filePath);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
             for (String line : lines) {
                 writer.write(line);
                 writer.newLine();
