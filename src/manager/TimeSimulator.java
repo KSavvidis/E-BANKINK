@@ -8,9 +8,14 @@ public class TimeSimulator{
     private final AccountManager accountManager;
     private final BillManager billManager;
 
-    public TimeSimulator(AccountManager accountManager, BillManager billManager){
+   /* public TimeSimulator(AccountManager accountManager, BillManager billManager){
         this.accountManager = new AccountManager();
         this.billManager = new BillManager();
+    }*/
+
+    public TimeSimulator(AccountManager accountManager, BillManager billManager){
+        this.accountManager = accountManager;
+        this.billManager = billManager;
     }
 
     public void run(LocalDate endDate){

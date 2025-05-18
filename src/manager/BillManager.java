@@ -67,7 +67,7 @@ public class BillManager {
                     );
                     bills.add(bill);
                     LocalDate dueDate = LocalDate.parse(bill.getDueDate());
-                    if (dueDate.isBefore(LocalDate.now())) {
+                    if (dueDate.isBefore(date)) {
                         billExpired.add(line);  // ΜΟΝΟ expired
                     } else {
                         billIssued.add(line);   // ΜΟΝΟ μη-expired
@@ -111,13 +111,50 @@ public class BillManager {
 
     protected List<Bill> getBillsForCustomer(String vat) {
         List<Bill> result = new ArrayList<>();
-        for (Bill bill : bills) {
-            if (bill.getCustomer().equals(vat)) {
-                result.add(bill);
+
+        Storable loader = new Storable() {
+            @Override
+            public String marshal() {
+                return null;
             }
-        }
+
+            @Override
+            public void unmarshal(String line) {
+                Map<String, String> billFields = new HashMap<>();
+                String[] fields = line.split(",");
+
+                for (String field : fields) {
+                    String[] keyValue = field.split(":", 2);
+                    if (keyValue.length == 2) {
+                        billFields.put(keyValue[0].trim(), keyValue[1].trim());
+                    }
+                }
+
+                try {
+                    Bill bill = new Bill(
+                            billFields.get("type"),
+                            billFields.get("paymentCode"),
+                            billFields.get("billNumber"),
+                            billFields.get("issuer"),
+                            billFields.get("customer"),
+                            Double.parseDouble(billFields.get("amount")),
+                            billFields.get("issueDate"),
+                            billFields.get("dueDate")
+                    );
+
+                    if (bill.getCustomer().equals(vat)) {
+                        result.add(bill);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error parsing bill: " + e.getMessage());
+                }
+            }
+        };
+
+        storageManager.load(loader, issuedFilePath);
         return result;
     }
+
 
     protected void simulateForExpiry() {
         List<Bill> expired = new ArrayList<>();

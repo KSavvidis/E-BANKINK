@@ -368,7 +368,7 @@ public class Menu {
             System.out.println("===================================");
             System.out.println("1. Load Issued Bills");
             System.out.println("2. Show Paid Bills");
-            System.out.println("3. Back to Admin Menu");
+            System.out.println("3. Back to Company Menu");
             System.out.print("Enter your choice:");
             int choice;
             if (sc.hasNextInt()) {
