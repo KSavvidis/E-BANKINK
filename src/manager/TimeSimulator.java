@@ -13,7 +13,8 @@ public class TimeSimulator{
         this.billManager = new BillManager();
     }
 
-    public void run(LocalDate currentDate, LocalDate endDate){
+    public void run(LocalDate endDate){
+        LocalDate currentDate = LocalDate.now();
         if(endDate.isBefore(currentDate)){
             System.out.println("Please enter a valid date that is not in the past.");
         }

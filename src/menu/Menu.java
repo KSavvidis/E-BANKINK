@@ -3,6 +3,7 @@ package menu;
 import manager.*;
 
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -228,7 +229,9 @@ public class Menu {
 
     private void showAdminMenu(Scanner sc){
         boolean exit = false;
-        //TimeSimulator timeSimulator = new TimeSimulator();
+        AccountManager accountManager = new AccountManager();
+        BillManager billManager = new BillManager();
+        TimeSimulator timeSimulator = new TimeSimulator(accountManager,billManager);
         while(!exit) {
             System.out.println("Admin Menu");
             System.out.println("===================================");
@@ -259,7 +262,7 @@ public class Menu {
                     case 6:
                         break;
                     case 7:
-
+                        simulateTimePassing(sc, timeSimulator);
                         break;
                     case 8:
                         exit = true;
@@ -271,6 +274,21 @@ public class Menu {
         }
     }
 
+    private void simulateTimePassing(Scanner sc, TimeSimulator timeSimulator) {
+        System.out.println("\nTime Simulation");
+        System.out.println("===================================");
+        System.out.println("Enter the target date (YYYY-MM-DD) to simulate until:");
+        String dateInput = sc.next();
+        sc.nextLine();
+        try {
+            LocalDate targetDate = LocalDate.parse(dateInput);
+            timeSimulator.run(targetDate);
+        }
+        catch (Exception e) {
+            System.out.println("Invalid date format. Please use YYYY-MM-DD format.");
+            System.out.println("Example: 2025-12-31");
+        }
+    }
     private void showCompanyMenu(User user,Scanner sc){
         boolean exit = false;
 

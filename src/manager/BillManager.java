@@ -121,29 +121,27 @@ public class BillManager {
 
     protected void simulateForExpiry() {
         List<Bill> expired = new ArrayList<>();
+        List<String> expiredLines = new ArrayList<>();
 
         for (Bill bill : bills) {
             LocalDate dueDate = LocalDate.parse(bill.getDueDate());
             if (dueDate.isBefore(LocalDate.now())) {
                 expired.add(bill);
+                expiredLines.add(bill.marshal());
             }
         }
-
         if (expired.isEmpty()) {
             return;
         }
-
-        File expiredFile = new File(expiredFilePath);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFile, true))) {
-            for (Bill bill : expired) {
-                writer.write(bill.marshal());
+        bills.removeAll(expired);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFilePath, true))) {
+            for (String line : expiredLines) {
+                writer.write(line);
                 writer.newLine();
             }
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
-        bills.removeAll(expired);
     }
 
     public void loadIssuedBills(String vat) {
