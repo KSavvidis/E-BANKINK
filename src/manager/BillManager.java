@@ -156,13 +156,13 @@ public class BillManager {
     }
 
 
-    protected void simulateForExpiry() {
+    protected void simulateForExpiry(LocalDate currentDate) {
         List<Bill> expired = new ArrayList<>();
         List<String> expiredLines = new ArrayList<>();
 
         for (Bill bill : bills) {
             LocalDate dueDate = LocalDate.parse(bill.getDueDate());
-            if (dueDate.isBefore(LocalDate.now())) {
+            if (dueDate.isBefore(currentDate)) {
                 expired.add(bill);
                 expiredLines.add(bill.marshal());
             }
@@ -174,6 +174,15 @@ public class BillManager {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFilePath, true))) {
             for (String line : expiredLines) {
                 writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(issuedFilePath))) {
+            for (Bill bill : bills) {
+                writer.write(bill.marshal());
                 writer.newLine();
             }
         } catch (IOException e) {

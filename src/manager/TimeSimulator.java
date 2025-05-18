@@ -28,6 +28,7 @@ public class TimeSimulator{
                 dailyWork(currentDate);
                 currentDate = currentDate.plusDays(1);
             }
+
         }
         accountManager.saveAccounts();
         System.out.println("Time simulated to date " + (currentDate.minusDays(1)) + ".");
@@ -37,7 +38,7 @@ public class TimeSimulator{
         rate();
         fee();
         billManager.loadBillsForDate(currentDate);
-        billManager.simulateForExpiry();
+        billManager.simulateForExpiry(currentDate);
     }
     private void rate(){
         for(Account account : accountManager.getAllAccounts()){
