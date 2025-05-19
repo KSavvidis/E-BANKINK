@@ -131,7 +131,7 @@ public class Menu {
                         showTransactionsMenu(user, sc);
                         break;
                     case 3:
-                        showStandingOrderMenu(user, sc);
+                       // showStandingOrderMenu(user, sc);
                         break;
                     case 4:
                         // List Standing Orders functionality
@@ -371,7 +371,8 @@ public class Menu {
         AccountManager accountManager = new AccountManager();
 
 
-        while(true) {
+        boolean exit = false;
+        while(!exit) {
             System.out.println("Bill Menu");
             System.out.println("===================================");
             System.out.println("1. Load Issued Bills");
@@ -383,18 +384,19 @@ public class Menu {
                 choice = sc.nextInt();
                 sc.nextLine();
 
-                if(choice == 3){
-                    return;
-                }
 
                 switch (choice) {
                     case 1:
-                        billManager.loadIssuedBills(user.getVAT());
+                     billManager.manualLoadBillsByDate(sc,user.getVAT());
                         break;
                     case 2:
                         break;
+                    case 3:
+                        exit=true;
+                        break;
                     default:
                         System.out.println("Invalid choice. Try again.");
+
 
                 }
             }
@@ -402,7 +404,7 @@ public class Menu {
         }
     }
 
-    private void showStandingOrderMenu(User user,Scanner sc){
+    /*private void showStandingOrderMenu(User user,Scanner sc){
         boolean exit = false;
         while(!exit) {
             System.out.println("Standing Order Menu");
@@ -427,5 +429,5 @@ public class Menu {
                 }
             }
         }
-    }
+    }*/
 }
