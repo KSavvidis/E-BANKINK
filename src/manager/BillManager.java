@@ -22,6 +22,7 @@ public class BillManager {
 
     public void loadBillsForToday() {
         loadBillsForDate(LocalDate.now());
+        simulateForExpiry(LocalDate.now());
     }
 
     public void loadBillsForDate(LocalDate date) {
@@ -157,37 +158,59 @@ public class BillManager {
 
 
     protected void simulateForExpiry(LocalDate currentDate) {
-        List<Bill> expired = new ArrayList<>();
-        List<String> expiredLines = new ArrayList<>();
+       //evala alli mia lista me olous tous logariasmous tou issued
+        List<Bill> allBills = new ArrayList<>();
+        List<String> expiredBillsLines = new ArrayList<>();
+        List<String> activeBillsLines = new ArrayList<>();
 
-        for (Bill bill : bills) {
-            LocalDate dueDate = LocalDate.parse(bill.getDueDate());
-            if (dueDate.isBefore(currentDate)) {
-                expired.add(bill);
-                expiredLines.add(bill.marshal());
+        //diavazei to issued
+        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFilePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Map<String, String> billFields = parseBillLine(line);
+                if (billFields != null) {
+                    Bill bill = createBillFromFields(billFields);
+                    if (bill != null) {
+                        allBills.add(bill);
+                    }
+                }
             }
-        }
-        if (expired.isEmpty()) {
+        } catch (IOException e) {
+            System.out.println("Error reading issued bills: " + e.getMessage());
             return;
         }
-        bills.removeAll(expired);
+
+        //xwrizei tin lista me olous tous logariasmous se issued kai expired listesb
+        for (Bill bill : allBills) {
+            LocalDate dueDate = LocalDate.parse(bill.getDueDate());
+            if (dueDate.isBefore(currentDate)) {
+                expiredBillsLines.add(bill.marshal());
+            } else {
+                activeBillsLines.add(bill.marshal());
+            }
+        }
+
+        //grafei tin expired lista
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFilePath, true))) {
-            for (String line : expiredLines) {
+            for (String line : expiredBillsLines) {
                 writer.write(line);
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error writing to expired bills: " + e.getMessage());
         }
 
+        //grafei tin nea issued lista
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(issuedFilePath))) {
-            for (Bill bill : bills) {
-                writer.write(bill.marshal());
+            for (String line : activeBillsLines) {
+                writer.write(line);
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error updating issued bills: " + e.getMessage());
         }
+
+        System.out.println("Updated " + expiredBillsLines.size() + " expired bills.");
     }
 
     public void loadIssuedBills(String vat) {
@@ -252,5 +275,36 @@ public class BillManager {
 
         System.out.println("Press Enter to continue...");
         new Scanner(System.in).nextLine();
+    }
+
+    private Map<String, String> parseBillLine(String line) {
+        Map<String, String> fields = new HashMap<>();
+        String[] parts = line.split(",");
+
+        for (String part : parts) {
+            String[] kv = part.split(":", 2);
+            if (kv.length == 2) {
+                fields.put(kv[0].trim(), kv[1].trim());
+            }
+        }
+        return fields;
+    }
+
+    private Bill createBillFromFields(Map<String, String> fields) {
+        try {
+            return new Bill(
+                    fields.get("type"),
+                    fields.get("paymentCode"),
+                    fields.get("billNumber"),
+                    fields.get("issuer"),
+                    fields.get("customer"),
+                    Double.parseDouble(fields.get("amount")),
+                    fields.get("issueDate"),
+                    fields.get("dueDate")
+            );
+        } catch (Exception e) {
+            System.out.println("Error creating bill: " + e.getMessage());
+            return null;
+        }
     }
 }
