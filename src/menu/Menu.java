@@ -75,7 +75,9 @@ public class Menu {
     private void login(Scanner sc) {
         UserManager userManager = new UserManager();
         boolean exit = false;
+        int times = 3;
         while (!exit) {
+        if(times != 0) {
             User user = userManager.authenticate();//pairnei to type
             if (user != null) {
                 switch (user.getType()) {//tsekarei to type
@@ -89,17 +91,23 @@ public class Menu {
                         break;
                     case "Company":
                         exit = true;
-                        showCompanyMenu(user,sc);
+                        showCompanyMenu(user, sc);
                         break;
                     default:
                         System.out.println("Unknown user type.");
                 }
             } else {
-                System.out.println("Please try again.");
-
+                --times;
+                System.out.println("Please try again. You have " + times + " more tries left");
             }
         }
+        else {
+            System.out.println("You have no tries left.");
+            exit = true;
+        }
+        }
     }
+
     private void showIndividualMenu(User user,Scanner sc) {
         boolean exit = false;
         while(!exit) {
@@ -123,7 +131,7 @@ public class Menu {
                         showTransactionsMenu(user, sc);
                         break;
                     case 3:
-                        // Create Standing Order functionality
+                        showStandingOrderMenu(user, sc);
                         break;
                     case 4:
                         // List Standing Orders functionality
@@ -391,6 +399,33 @@ public class Menu {
                 }
             }
 
+        }
+    }
+
+    private void showStandingOrderMenu(User user,Scanner sc){
+        boolean exit = false;
+        while(!exit) {
+            System.out.println("Standing Order Menu");
+            System.out.println("==================================");
+            System.out.println("1. Create Payment Standing Orders");
+            System.out.println("2. Create Transfer Standing Orders");
+            System.out.println("3. Back to Main Menu");
+            System.out.print("Enter your choice:");
+            int choice;
+            if (sc.hasNextInt()) {
+                choice = sc.nextInt();
+                sc.nextLine();
+                StandingOrderManager standingOrderManager = new StandingOrderManager();
+                switch (choice) {
+                    case 1:
+                        standingOrderManager.createStandingOrder(sc);
+                        break;
+                    case 2:
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Try again.");
+                }
+            }
         }
     }
 }

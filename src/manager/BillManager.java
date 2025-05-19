@@ -155,8 +155,8 @@ public class BillManager {
         return result;
     }
 
-
-    protected void simulateForExpiry(LocalDate currentDate) {
+/*
+     protected void simulateForExpiry(LocalDate currentDate) {
         List<Bill> expired = new ArrayList<>();
         List<String> expiredLines = new ArrayList<>();
 
@@ -189,6 +189,41 @@ public class BillManager {
             System.out.println("Error: " + e.getMessage());
         }
     }
+*/
+
+protected void simulateForExpiry(LocalDate currentDate) {
+    List<Bill> expiredBills = new ArrayList<>();
+    List<String> lines = new ArrayList<>();
+    FileStorageManager storageManager = new FileStorageManager();
+
+    Storable loader = new Storable() {
+        @Override
+        public String marshal() {
+            return null;
+        }
+
+        @Override
+        public void unmarshal(String line) {
+            Map<String, String> billFields = new HashMap<>();
+            String[] fields = line.split(",");
+
+            for (String field : fields) {
+                String[] keyValue = field.split(":", 2);
+                if (keyValue.length == 2) {
+                    billFields.put(keyValue[0].trim(), keyValue[1].trim());
+                }
+            }
+            try(BufferedReader br = new BufferedReader(new FileReader(issuedFilePath))){
+                br.readLine();
+            }
+            catch (IOException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    };
+
+
+}
 
     public void loadIssuedBills(String vat) {
         List<Bill> issuedBills = new ArrayList<>();

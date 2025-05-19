@@ -131,23 +131,26 @@ public class TransactionManager {
         }
 
         System.out.println("Pending bills:");
-        for (int i = 0; i < pendingBills.size(); i++) {
-            Bill bill = pendingBills.get(i);
+        int i = 0;
+        for (Bill bill: pendingBills) {
             System.out.printf("%d. RF: %s | Amount: %.2f | Due: %s | Issuer: %s\n",
                     i + 1, bill.getPaymentCode(), bill.getAmount(), bill.getDueDate(), bill.getIssuer());
+            i++;
         }
 
-        System.out.print("Select bill to pay (1-" + pendingBills.size() + "): ");
-        int billChoice = sc.nextInt();
+        System.out.print("Select bill by RF: ");
+        String rf = sc.next();
         sc.nextLine();
-
-        if (billChoice < 1 || billChoice > pendingBills.size()) {
-            System.out.println("Invalid choice.");
+        Bill selectedBill = null;
+        for(Bill bill: pendingBills) {
+            if(rf.equals(bill.getPaymentCode())) {
+                selectedBill = bill;
+            }
+        }
+        if(selectedBill == null) {
+            System.out.println("Bill not found.");
             return;
         }
-
-        Bill selectedBill = pendingBills.get(billChoice - 1);
-
         Account selectedAccount = accountManager.findByIban(iban);
         if (selectedAccount == null) {
             System.out.println("No account selected. Aborting payment.");
@@ -160,7 +163,7 @@ public class TransactionManager {
         }
 
         selectedAccount.setBalance(selectedAccount.getBalance() - selectedBill.getAmount());
-        System.out.printf("Payment of %.2f for bill %s completed. New account balance: %.2f\n",
+        System.out.printf("Payment of %.2f for bill %s completed. Updated account balance: %.2f\n",
                 selectedBill.getAmount(), selectedBill.getPaymentCode(), selectedAccount.getBalance());
 
 
