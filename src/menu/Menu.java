@@ -5,14 +5,9 @@ import manager.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-
 import model.Account;
-import model.PersonalAccount;
 import model.User;
-import model.Customer;
-import storage.FileStorageManager;
 import transaction.*;
 
 public class Menu {
@@ -24,19 +19,19 @@ public class Menu {
         AccountManager accountManager = new AccountManager();
         StatementManager statementsManager = new StatementManager();
         statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
-
+        accountManager.createAccountOfBank();
         // Load data from storage
         userManager.loadUsers();
-        System.out.println("✅ All users loaded.");
+        System.out.println("All users loaded.");
 
         accountManager.loadAccounts();
-        System.out.println("✅ All accounts loaded.");
+        System.out.println("All accounts loaded.");
 
         statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
-        System.out.println("✅ Statements initialized for all accounts.");
+        System.out.println("Statements initialized for all accounts.");
 
         billManager.loadBillsForToday();  // <- θα πρέπει να έχεις ή να προσθέσεις αυτή τη μέθοδο στο BillManager
-        System.out.println("✅ All bills loaded.");
+        System.out.println("All bills loaded.");
 
         System.out.println("System initialization complete.\n");
 
@@ -131,7 +126,7 @@ public class Menu {
                         showTransactionsMenu(user, sc);
                         break;
                     case 3:
-                       // showStandingOrderMenu(user, sc);
+                        showStandingOrderMenu(user, sc);
                         break;
                     case 4:
                         // List Standing Orders functionality
@@ -164,7 +159,7 @@ public class Menu {
             System.out.println("No accounts found.");
         } else {
             for (Account acc : userAccounts) {
-                String role = acc.getPrimaryOwner().equals(user.getVAT()) ? "Primary Owner" : "Co-Owner";
+                String role = acc.getPrimaryOwner().getVAT().equals(user.getVAT()) ? "Primary Owner" : "Co-Owner";
                 System.out.printf("- IBAN: %s \t Balance: %.2f \t [%s]\n", acc.getIban(), acc.getBalance(), role);
             }
         }
@@ -239,7 +234,8 @@ public class Menu {
         boolean exit = false;
         AccountManager accountManager = new AccountManager();
         BillManager billManager = new BillManager();
-        TimeSimulator timeSimulator = new TimeSimulator(accountManager,billManager);
+        StandingOrderManager standingOrderManager = new StandingOrderManager();
+        TimeSimulator timeSimulator = new TimeSimulator(accountManager, billManager, standingOrderManager);
         while(!exit) {
             System.out.println("Admin Menu");
             System.out.println("===================================");
@@ -294,7 +290,6 @@ public class Menu {
         }
         catch (Exception e) {
             System.out.println("Invalid date format. Please use YYYY-MM-DD format.");
-            System.out.println("Example: 2025-12-31");
         }
     }
     private void showCompanyMenu(User user,Scanner sc){
@@ -369,9 +364,8 @@ public class Menu {
     private void showBillMenu(User user,Scanner sc){
         BillManager billManager = new BillManager();
         AccountManager accountManager = new AccountManager();
-
-
         boolean exit = false;
+
         while(!exit) {
             System.out.println("Bill Menu");
             System.out.println("===================================");
@@ -384,19 +378,17 @@ public class Menu {
                 choice = sc.nextInt();
                 sc.nextLine();
 
-
                 switch (choice) {
                     case 1:
-                     billManager.manualLoadBillsByDate(sc,user.getVAT());
+                        billManager.loadBillsforCompanyDate(sc, user.getVAT());
                         break;
                     case 2:
                         break;
                     case 3:
-                        exit=true;
+                      exit = true;
                         break;
                     default:
                         System.out.println("Invalid choice. Try again.");
-
 
                 }
             }
@@ -404,7 +396,7 @@ public class Menu {
         }
     }
 
-    /*private void showStandingOrderMenu(User user,Scanner sc){
+    private void showStandingOrderMenu(User user,Scanner sc){
         boolean exit = false;
         while(!exit) {
             System.out.println("Standing Order Menu");
@@ -420,7 +412,6 @@ public class Menu {
                 StandingOrderManager standingOrderManager = new StandingOrderManager();
                 switch (choice) {
                     case 1:
-                        standingOrderManager.createStandingOrder(sc);
                         break;
                     case 2:
                         break;
@@ -429,5 +420,5 @@ public class Menu {
                 }
             }
         }
-    }*/
+    }
 }

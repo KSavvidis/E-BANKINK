@@ -5,21 +5,26 @@ import model.Account;
 import java.time.LocalDate;
 
 public class TimeSimulator{
-    private final AccountManager accountManager;
-    private final BillManager billManager;
-
+    private AccountManager accountManager;
+    private BillManager billManager;
+    private StandingOrderManager standingOrderManager;
+    private static LocalDate currentDate;
    /* public TimeSimulator(AccountManager accountManager, BillManager billManager){
         this.accountManager = new AccountManager();
         this.billManager = new BillManager();
     }*/
 
-    public TimeSimulator(AccountManager accountManager, BillManager billManager){
+    public TimeSimulator(AccountManager accountManager, BillManager billManager, StandingOrderManager standingOrderManager){
         this.accountManager = accountManager;
         this.billManager = billManager;
+        this.standingOrderManager = standingOrderManager;
     }
 
-    public void run(LocalDate endDate){
+    public TimeSimulator(){}
+
+    public void run(LocalDate endDate ){
         LocalDate currentDate = LocalDate.now();
+
         if(endDate.isBefore(currentDate)){
             System.out.println("Please enter a valid date that is not in the past.");
         }
@@ -32,6 +37,7 @@ public class TimeSimulator{
         }
         accountManager.saveAccounts();
         System.out.println("Time simulated to date " + (currentDate.minusDays(1)) + ".");
+        this.currentDate = currentDate.minusDays(1);
     }
 
     private void dailyWork(LocalDate currentDate){
@@ -52,5 +58,7 @@ public class TimeSimulator{
 
     }
 
-
+    public LocalDate getCurrentDate(){
+        return currentDate;
+    }
 }

@@ -1,16 +1,16 @@
 package manager;
 
 import model.Account;
+import model.BankAccount;
 import storage.FileStorageManager;
 import model.Bill;
-import manager.BillManager;
 
 import java.io.*;
 import java.util.*;
 
 public class TransactionManager {
-    private final AccountManager accountManager;
-    private final BillManager billManager;
+    private  AccountManager accountManager;
+    private  BillManager billManager;
 
     private final FileStorageManager storageManager = new FileStorageManager();
     private final String accountsFilePath = "data/accounts/accounts.csv";
@@ -18,6 +18,9 @@ public class TransactionManager {
     public TransactionManager(AccountManager accountManager, BillManager billManager) {
         this.accountManager = accountManager;
         this.billManager = billManager;
+    }
+
+    public TransactionManager() {
     }
 
     public void performDeposit(String iban, Scanner sc) {
@@ -68,10 +71,10 @@ public class TransactionManager {
         System.out.printf("Withdrew %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
 
-    public void performTransfer(String senderIban, Scanner sc) {
+    public void performTransfer(Account senderAccount, Scanner sc) {
         //idio opws deposit
-        Account sender = accountManager.findByIban(senderIban);
-        if (sender == null) {
+
+        if (senderAccount == null) {
             System.out.println("Sender account not found.");
             return;
         }
@@ -79,7 +82,7 @@ public class TransactionManager {
         System.out.print("Enter recipient IBAN: ");
         String recipientIban = sc.nextLine();
 
-        if (senderIban.equals(recipientIban)) {
+        if (senderAccount.getIban().equals(recipientIban)) {
             System.out.println("Cannot transfer to the same account.");
             return;
         }
@@ -100,7 +103,7 @@ public class TransactionManager {
             return;
         }
 
-        if (sender.getBalance() < amount) {
+        if (senderAccount.getBalance() < amount) {
             System.out.println("Insufficient balance.");
             return;
         }
@@ -108,17 +111,46 @@ public class TransactionManager {
         System.out.print("Enter transfer reason: ");
         String reason = sc.nextLine();
 
-        sender.setBalance(sender.getBalance() - amount);
+        senderAccount.setBalance(senderAccount.getBalance() - amount);
         recipient.setBalance(recipient.getBalance() + amount);
 
-        updateAccountInFile(sender);
+        updateAccountInFile(senderAccount);
         updateAccountInFile(recipient);
 
-        recordTransaction(sender, "Transfer to " + recipientIban + " - " + reason, -amount);
-        recordTransaction(recipient, "Transfer from " + senderIban + " - " + reason, amount);
+        recordTransaction(senderAccount, "Transfer to " + recipientIban + " - " + reason, -amount);
+        recordTransaction(recipient, "Transfer from " + senderAccount.getIban() + " - " + reason, amount);
 
         System.out.printf("Transferred %.2f successfully to %s.\n", amount, recipientIban);
-        System.out.printf("Sender new balance: %.2f\n", sender.getBalance());
+        System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
+    }
+
+    public void performOrderTransfer(Account senderAccount, Account receiverAccount, double amount, String description) {
+        if (senderAccount == null) {
+            System.out.println("Sender account not found.");
+            return;
+        }
+
+        if (receiverAccount == null) {
+            System.out.println("Recipient account not found.");
+            return;
+        }
+
+        if (senderAccount.getIban().equals(receiverAccount.getIban())) {
+            System.out.println("Cannot transfer to the same account.");
+            return;
+        }
+
+        senderAccount.setBalance(senderAccount.getBalance() - amount);
+        receiverAccount.setBalance(receiverAccount.getBalance() + amount);
+
+        updateAccountInFile(senderAccount);
+        updateAccountInFile(receiverAccount);
+
+        recordTransaction(senderAccount, "Transfer to " + receiverAccount.getIban() + " - " + description, -amount);
+        recordTransaction(receiverAccount, "Transfer from " + senderAccount.getIban() + " - " + description, amount);
+
+        System.out.printf("Transferred %.2f successfully to %s.\n", amount, receiverAccount.getIban());
+        System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
     }
 
     public void performPaymentOrder(String iban, String vat, Scanner sc) {
@@ -171,6 +203,26 @@ public class TransactionManager {
 
 
         recordTransaction(selectedAccount, "Bill Payment", -selectedBill.getAmount());
+    }
+
+    public void performOrderTransferFee(Account senderAccount, double amount, String description) {
+        BankAccount bankAccount = BankAccount.getInstance();
+        if (senderAccount == null) {
+            System.out.println("Sender account not found.");
+            return;
+        }
+        if(bankAccount == null) {
+            System.out.println("Bank's account not found.");
+            return;
+        }
+
+        senderAccount.setBalance(senderAccount.getBalance() - amount);
+        bankAccount.setBalance(bankAccount.getBalance() + amount);
+        updateAccountInFile(senderAccount);
+        updateAccountInFile(bankAccount);
+        recordTransaction(senderAccount, "Transfered fee to Bank: " + amount, -amount);
+        recordTransaction(bankAccount, "Transfered fee from " + senderAccount.getIban() + " - " + description, + amount);
+        System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
     }
 
     // enimerwsi tis grammis tou arxeiou mono tou account pou ekane login

@@ -16,6 +16,9 @@ public class UserManager {
     private final FileStorageManager storageManager = new FileStorageManager();
     private final List<User> users = new ArrayList<>();
 
+    public UserManager() {
+        loadUsers();
+    }
 
 
     public void loadUsers() {
@@ -78,7 +81,7 @@ public class UserManager {
                     if (user != null) users.add(user);
 
                 } catch (Exception e) {
-                    System.out.println("Lathos sto fortwma xristi: " + e.getMessage());
+                    System.out.println("Error: " + e.getMessage());
                 }
             }
         };
@@ -181,9 +184,14 @@ public class UserManager {
         else {
             List<Account> allAccounts = accountManager.getAllAccounts();
             for (Account acc : allAccounts) {
-                    boolean isPrimary = userVatNumber.equals(acc.getPrimaryOwner());
-                    boolean isCoOwner = acc.getCoOwner() != null && acc.getCoOwner().contains(userVatNumber);
-
+                    boolean isPrimary = userVatNumber.equals(acc.getPrimaryOwner().getVAT());
+                    boolean isCoOwner = false;
+                    for(Customer coOwner: acc.getCoOwner()){
+                        if(coOwner != null && coOwner.getVAT().equals(userVatNumber)){
+                            isCoOwner = true;
+                            break;
+                        }
+                    }
                     if (isPrimary || isCoOwner) {
                         String role = isPrimary ? "Primary Owner" : "Co-Owner";
                         System.out.printf(" IBAN: %-22s Balance: %10.2f  [%s]\n", acc.getIban(), acc.getBalance(), role);
@@ -220,5 +228,14 @@ public class UserManager {
             }
         }
         return map;
+    }
+
+    public Customer findCustomerByVAT(String vatNumber) {
+        for (User user : users) {
+            if(user instanceof Customer && user.getVAT().equals(vatNumber)) {
+                return (Customer)user;
+            }
+        }
+        return null;
     }
 }

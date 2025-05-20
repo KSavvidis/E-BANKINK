@@ -1,11 +1,8 @@
 package manager;
 
-import model.Account;
-import model.BusinessAccount;
-import model.PersonalAccount;
+import model.*;
 import storage.FileStorageManager;
 import storage.Storable;
-import model.User;
 
 import java.util.*;
 
@@ -14,9 +11,13 @@ public class AccountManager {
     private final List<Account> accounts = new ArrayList<>();
     private final FileStorageManager storageManager = new FileStorageManager();
     private final String accountsFilePath = "data/accounts/accounts.csv";
-
+    private UserManager userManager = new UserManager();
 
     public AccountManager() {
+        loadAccounts();
+    }
+    public AccountManager(UserManager userManager) {
+        this.userManager = userManager;
         loadAccounts();//fortwnei account kata tin arxikopoiisi
     }
 
@@ -30,16 +31,15 @@ public class AccountManager {
             @Override
             public void unmarshal(String data) {
                 Map<String, String> map = new HashMap<>();
-                List<String> coOwners = new ArrayList<>();
+                List<Customer> coOwners = new ArrayList<>();
                 String[] parts = data.split(",");
-
                 for (String part : parts) {
                     String[] kv = part.split(":", 2);
                     if (kv.length == 2) {
                         String key = kv[0].trim();
                         String value = kv[1].trim();
-                        if (key.equals("coOwner")) {
-                            coOwners.add(value);
+                        if (key.equals("coOwner") && userManager.findCustomerByVAT(value) != null) {
+                            coOwners.add(userManager.findCustomerByVAT(value));
                         } else {
                             map.put(key, value);
                         }
@@ -51,10 +51,11 @@ public class AccountManager {
 
                 Account acc = null;
                 try {
+
                     if (type.equals("PersonalAccount")) {
                         acc = new PersonalAccount(
                                 map.get("iban"),
-                                map.get("primaryOwner"),
+                                userManager.findCustomerByVAT(map.get("primaryOwner")),
                                 coOwners,
                                 map.get("dateCreated"),
                                 Double.parseDouble(map.get("rate")),
@@ -63,7 +64,7 @@ public class AccountManager {
                     } else if (type.equals("BusinessAccount")) {
                         acc = new BusinessAccount(
                                 map.get("iban"),
-                                map.get("primaryOwner"),
+                                userManager.findCustomerByVAT(map.get("primaryOwner")),
                                 map.get("dateCreated"),
                                 Double.parseDouble(map.get("rate")),
                                 Double.parseDouble(map.get("balance")),
@@ -110,11 +111,19 @@ public class AccountManager {
     public List<Account> findByVat(String vat) {
             List<Account> userAccounts = new ArrayList<>();
             for (Account account : accounts) {
-                if (account.getPrimaryOwner().equals(vat)) {
+                Customer primaryOwner = account.getPrimaryOwner();
+                if (primaryOwner != null && primaryOwner.getVAT().equals(vat)) {
                     userAccounts.add(account);
                 }
-                else if (account instanceof PersonalAccount && account.getCoOwner().contains(vat)) {
-                    userAccounts.add(account);
+                else if (account instanceof PersonalAccount) {
+                    List<Customer> coOwners = account.getCoOwner();
+                    if(coOwners != null) {
+                        for(Customer coOwner : coOwners) {
+                            if(coOwner.getVAT().equals(vat)) {
+                                userAccounts.add(account);
+                            }
+                        }
+                    }
                 }
             }
             return userAccounts;
@@ -131,7 +140,7 @@ public class AccountManager {
         System.out.println("Select an account:");
         for (int i = 0; i < allAccounts.size(); i++) {
             Account acc = allAccounts.get(i);
-            String role = acc.getPrimaryOwner().equals(vat) ? "Primary Owner" : "Co-Owner";
+            String role = acc.getPrimaryOwner().getVAT().equals(vat) ? "Primary Owner" : "Co-Owner";
             System.out.printf("%d. IBAN: %s \t Balance: %.2f \t [%s]\n", i + 1, acc.getIban(), acc.getBalance(), role);
         }
 
@@ -161,6 +170,23 @@ public class AccountManager {
         return coOwnedAccounts;
     }
 
+    public void createAccountOfBank(){
+        String iban = generateIBAN();
+        BankAccount bank = new BankAccount(iban, 69696969, "Bank");
+        bank.matchBankAccount(bank);
+    }
+
+    public String generateIBAN(){
+        String iban = "";
+        Random r = new Random();
+        iban += "GR" + "200";
+        for(int i=0; i<15; i++) {
+            iban += r.nextInt(10);
+
+        }
+        System.out.println("IBAN: " + iban);
+        return iban;
+    }
     public boolean hasAccounts(String vat) {
         return !findByVat(vat).isEmpty();
     }

@@ -5,7 +5,7 @@ import model.Account;
 
 import java.util.Scanner;
 
-public class TransferTransaction implements Transaction{
+public class TransferTransaction implements Transaction {
     private final TransactionManager transactionManager;
 
     public TransferTransaction(TransactionManager transactionManager) {
@@ -14,6 +14,7 @@ public class TransferTransaction implements Transaction{
 
     @Override
     public void execute(Account account, Scanner sc) {
-        transactionManager.performTransfer(account.getIban(), sc);
+        transactionManager.performTransfer(account, sc);
     }
+
 }

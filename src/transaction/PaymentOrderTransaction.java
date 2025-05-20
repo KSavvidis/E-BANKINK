@@ -6,7 +6,7 @@ import model.User;
 
 import java.util.Scanner;
 
-public class PaymentOrderTransaction implements Transaction {
+public class PaymentOrderTransaction implements ScheduledTransaction {
     private final TransactionManager transactionManager;
 
     public PaymentOrderTransaction(TransactionManager transactionManager) {
@@ -15,6 +15,6 @@ public class PaymentOrderTransaction implements Transaction {
 
     @Override
     public void execute(Account account, Scanner sc) {
-        transactionManager.performPaymentOrder(account.getIban(), account.getPrimaryOwner(), sc);
+
     }
 }

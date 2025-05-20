@@ -3,10 +3,9 @@ package model;
 public class BusinessAccount extends Account {
     double fee;
 
-    public BusinessAccount(String iban, String primaryOwner, String dateCreated, double rate, double balance,double fee) {
+    public BusinessAccount(String iban, Customer primaryOwner, String dateCreated, double rate, double balance,double fee) {
         super(iban, primaryOwner, dateCreated, rate, balance);
         this.fee=fee;
-
     }
 
     @Override
