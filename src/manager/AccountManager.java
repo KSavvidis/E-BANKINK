@@ -4,6 +4,9 @@ import model.*;
 import storage.FileStorageManager;
 import storage.Storable;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.*;
 
 public class AccountManager {
@@ -190,4 +193,79 @@ public class AccountManager {
     public boolean hasAccounts(String vat) {
         return !findByVat(vat).isEmpty();
     }
+
+    public void printAccountsForMenu(Scanner sc) {
+        System.out.println("Bank Accounts: ");
+        int i = 1;
+        for(Account acc : accounts) {
+            System.out.printf("%d. IBAN: %s \t Balance: %.2f \t VatNumber of PrimaryOwner: %s\n", i, acc.getIban(), acc.getBalance(), acc.getPrimaryOwner().getVAT());
+            i++;
+        }
+        System.out.println("Press any key to continue...");
+        sc.nextLine();
+    }
+
+    public void showAccountInfo(Scanner sc) {
+        System.out.println("Please Insert the Bank Account's IBAN: ");
+        String iban = sc.next();
+        sc.nextLine();
+        Account acc = findByIban(iban);
+        if (acc != null) {
+            System.out.println("Details for Account: " + acc.getIban());
+            System.out.println("----------------------------------------");
+            System.out.printf("Balance: %.2f \t PrimaryOwner: [%s]",acc.getBalance(), acc.getPrimaryOwner().getVAT());
+            if(acc instanceof PersonalAccount && !acc.getCoOwner().isEmpty()) {
+                for(Customer coOwner : acc.getCoOwner()) {
+                    System.out.printf("\t Co-Owner: [%s]", coOwner.getVAT());
+                }
+            }
+            System.out.printf("\t Date Created: %s\n", acc.getDateCreated());
+            System.out.println("----------------------------------------");
+            System.out.println("Press any key to continue...");
+            sc.nextLine();
+        }
+        else {
+            System.out.println("Invalid IBAN. Please try again.");
+        }
+    }
+
+    public void showAccountStatements(Scanner sc) {
+        System.out.println("Please Insert the Bank Account's IBAN: ");
+        String iban = sc.next();
+        sc.nextLine();
+        Account acc = findByIban(iban);
+        if (acc != null) {
+            String statementsFilePath = "data/statements/" + acc.getIban() + ".csv";
+            File statementsFile = new File(statementsFilePath);
+
+            if(!statementsFile.exists() || statementsFile.length() == 0) {
+                System.out.println("No statements available for this IBAN: +" + iban);
+                System.out.println("Press any key to continue...");
+                sc.nextLine();
+                return;
+            }
+            System.out.println("Account Statements for IBAN: " + iban);
+            System.out.println("----------------------------------------");
+            try(BufferedReader br = new BufferedReader(new FileReader(statementsFile))){
+                String line;
+
+                while((line = br.readLine()) != null) {
+                    //auto den diavazei tis kenes grammes den jerw an prepei na to baloume h oxi  if(!line.trim().isEmpty()) {
+                    System.out.println(line);
+                }
+            }
+            catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+            System.out.println("----------------------------------------");
+            System.out.println("Press any key to continue...");
+            sc.nextLine();
+        }
+        else {
+            System.out.println("Invalid IBAN. Please try again.");
+            System.out.println("Press any key to continue...");
+            sc.nextLine();
+        }
+    }
+
 }

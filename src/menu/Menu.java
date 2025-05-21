@@ -110,8 +110,6 @@ public class Menu {
             System.out.println("===================================");
             System.out.println("1. Overview");
             System.out.println("2. Transactions");
-            System.out.println("3. Create Standing Order");
-            System.out.println("4. List Standing Orders");
             System.out.println("5. Back to login screen");
             System.out.print("Enter your choice:");
 
@@ -126,14 +124,9 @@ public class Menu {
                         showTransactionsMenu(user, sc);
                         break;
                     case 3:
-                        showStandingOrderMenu(user, sc);
-                        break;
-                    case 4:
-                        // List Standing Orders functionality
-                        break;
-                    case 5:
                         exit = true;
                         break;
+
                     default:
                         System.out.println("Invalid choice, please try again.");
                 }
@@ -213,7 +206,7 @@ public class Menu {
                     break;
                 case 4:
                    // transactionManager.paymentOrder(selectedAccount.getIban(), selectedAccount.getPrimaryOwner(), sc);
-                    transaction = new PaymentOrderTransaction(transactionManager);
+                    transaction = new PaymentTransaction(transactionManager);
                     break;
                 default:
                     System.out.println("Invalid choice. Try again.");
@@ -256,6 +249,7 @@ public class Menu {
                         showCustomerMenu(sc);
                         break;
                     case 2:
+                        showAdminBankAccountsMenu(accountManager, sc);
                         break;
                     case 3:
                         showCompanyBillsMenu(sc);
@@ -481,6 +475,40 @@ public class Menu {
             }
 
 
+        }
+    }
+
+    private void showAdminBankAccountsMenu(AccountManager accountManager, Scanner sc) {
+        boolean exit = false;
+        while(!exit) {
+            System.out.println("Bank Accounts Menu");
+            System.out.println("==================================");
+            System.out.println("1. Show Bank Accounts");
+            System.out.println("2. Show Bank Account Information");
+            System.out.println("3. Show Bank Account Statements");
+            System.out.println("4. Back to Admin Menu");
+            System.out.print("Enter your choice:");
+            int choice;
+            if (sc.hasNextInt()) {
+                choice = sc.nextInt();
+                sc.nextLine();
+                switch (choice) {
+                    case 1:
+                        accountManager.printAccountsForMenu(sc);
+                        break;
+                    case 2:
+                        accountManager.showAccountInfo(sc);
+                        break;
+                    case 3:
+                        accountManager.showAccountStatements(sc);
+                        break;
+                    case 4:
+                        exit = true;
+                        break;
+                    default:
+                        System.out.println("Please enter a valid choice. Try again.");
+                }
+            }
         }
     }
 

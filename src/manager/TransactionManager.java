@@ -153,7 +153,7 @@ public class TransactionManager {
         System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
     }
 
-    public void performPaymentOrder(String iban, String vat, Scanner sc) {
+    public void performPayment(String iban, String vat, Scanner sc) {
 
         List<Bill> pendingBills = billManager.getBillsForCustomer(vat);
 
@@ -166,7 +166,7 @@ public class TransactionManager {
         int i = 0;
         for (Bill bill: pendingBills) {
             System.out.printf("%d. RF: %s | Amount: %.2f | Due: %s | Issuer: %s\n",
-                    i + 1, bill.getPaymentCode(), bill.getAmount(), bill.getDueDate(), bill.getIssuer());
+                    i + 1, bill.getPaymentCode(), bill.getAmount(), bill.getDueDate(), bill.getIssuer().getVAT());
             i++;
         }
 
