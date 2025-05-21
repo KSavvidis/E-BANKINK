@@ -48,7 +48,6 @@ public class UserManager {
 
                 try {
                     User user = null;
-
                     switch (type) {
                         case "Admin":
                             user = new Admin(

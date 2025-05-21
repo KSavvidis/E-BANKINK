@@ -24,34 +24,54 @@ public class TransferOrder extends StandingOrder {
         this.dayOfMonth = dayOfMonth;
     }
 
-    @Override
-    boolean canBeExecuted() {
+    public boolean canBeExecuted() {
         TimeSimulator timeSimulator = new TimeSimulator();
-        boolean inPeriod = false;
-        boolean validBalance = false;
-        boolean dayOfCharge = false;
-        boolean frequencyOfMonthCharged = false;
+        LocalDate currentDate = timeSimulator.getCurrentDate();
+        return validBalance() && isActiveOn(currentDate) && frequencyOfMonthCharged(currentDate) && !failedTooManyAttempts();
+    }
 
-        if (!timeSimulator.getCurrentDate().isBefore(getStartDate()) || !timeSimulator.getCurrentDate().isAfter(getEndDate())) {
-            inPeriod = true;
+    private boolean frequencyOfMonthCharged(LocalDate currentDate) {
+        int monthsBetween = currentDate.getMonthValue() - getStartDate().getMonthValue();
+        return monthsBetween % frequencyInMonths == 0;
+    }
+    @Override
+    public boolean executeOn(LocalDate date) {
+        if(!isActiveOn(date)) {
+            return false;
         }
-
-        if (getChargeAccount().getBalance() >= amount) {
-            validBalance = true;
-        }
-
-        if (timeSimulator.getCurrentDate().getDayOfMonth() == dayOfMonth) {
-            dayOfCharge = true;
-        }
-
-        if (timeSimulator.getCurrentDate().getMonthValue() % frequencyInMonths == 0) {
-            frequencyOfMonthCharged = true;
-        }
-        return frequencyOfMonthCharged && inPeriod && validBalance && dayOfCharge;
+        return dayOfMonth == date.getDayOfMonth();
     }
 
     @Override
-    boolean execute(List<Transaction> transactions) {
+    public boolean execute() {
+        TimeSimulator timeSimulator = new TimeSimulator();
+        if(canBeExecuted()) {
+            TransactionManager transactionManager = new TransactionManager();
+            transactionManager.performOrderTransfer(getChargeAccount(), creditAccount, amount, getDescription());
+            transactionManager.performOrderTransferFee(getChargeAccount(), getFee(), getDescription());
+            resetFailedAttempts();
+            return true;
+        }
+        increaseFailedAttempts();
         return false;
+    }
+
+    @Override
+    public boolean validBalance() {
+        if(getChargeAccount().getBalance() >= amount + (getFee()/100) * amount) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public LocalDate getNextExecutionDate(LocalDate currentDate) {
+        LocalDate next = getStartDate();
+        while(next.isAfter(getEndDate())) {
+            if(next.getDayOfMonth() == dayOfMonth && !next.isBefore(currentDate)) {
+                return next;
+            }
+
+        }
     }
 }

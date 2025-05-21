@@ -6,13 +6,12 @@ import storage.Storable;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class StandingOrderManager {
     private String standingOrdersFilePath = "data/orders/active.csv";
     private FileStorageManager storageManager;
+    private List<StandingOrder> standingOrders = new ArrayList<>();
     public StandingOrderManager() {
         storageManager = new FileStorageManager();
         loadStandingOrders();
@@ -79,6 +78,7 @@ public class StandingOrderManager {
                             );
                             break;
                     }
+                    standingOrders.add(standingOrder);
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
                 }
@@ -89,5 +89,12 @@ public class StandingOrderManager {
         storageManager.load(loader, "data/users/users.csv");
     }
 
+    public void executeStandingOrders(LocalDate currentDate) {
+        PriorityQueue<StandingOrder> standingOrdersQueue = new PriorityQueue<>();
+
+        for(StandingOrder standingOrder : standingOrders) {
+
+        }
+    }
 
 }

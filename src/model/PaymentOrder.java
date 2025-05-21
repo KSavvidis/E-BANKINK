@@ -16,26 +16,14 @@ public class PaymentOrder extends StandingOrder {
         this.maxAmount = maxAmount;
         this.paymentCode = paymentCode;
     }
-    @Override
-    public boolean canBeExecuted() {
-        TimeSimulator timeSimulator = new TimeSimulator(null, null , null);
-        LocalDate currentDate = timeSimulator.getCurrentDate();
-        boolean inPeriod = false;
-        boolean validBalance = false;
-
-        if(!currentDate.isBefore(getStartDate()) || !currentDate.isAfter(getEndDate())) {
-            inPeriod =  true;
-        }
-        if(getChargeAccount().getBalance() >= maxAmount) {
-            validBalance = true;
-        }
-
-        return inPeriod && validBalance;
-    }
 
     @Override
-    public boolean execute(List<Transaction> transactions) {
+    public boolean executeOn(LocalDate date) {
         return false;
     }
 
+    @Override
+    public boolean execute() {
+        return false;
+    }
 }
