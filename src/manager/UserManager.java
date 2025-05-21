@@ -132,7 +132,7 @@ public class UserManager {
             String type = user.getType();
 
 
-            if(type.equals("Individual") || type.equals("Company")){
+            if(type.equals("Individual") || type.equals("Company")) {
                 String legalName = user.getLegalName();
                 String vatNumber = user.getVAT();
                 System.out.printf("%2d. [%s]: %s (%s)\n",i,type,legalName,vatNumber);
