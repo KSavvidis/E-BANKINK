@@ -17,4 +17,9 @@ public class PaymentOrderTransaction implements ScheduledTransaction {
     public void execute(Account account, Scanner sc) {
 
     }
+
+    @Override
+    public boolean execute() {
+        return false;
+    }
 }

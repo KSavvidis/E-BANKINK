@@ -18,6 +18,11 @@ public class PaymentOrder extends StandingOrder {
     }
 
     @Override
+    public boolean validBalance() {
+        return false;
+    }
+
+    @Override
     public boolean executeOn(LocalDate date) {
         return false;
     }
@@ -25,5 +30,10 @@ public class PaymentOrder extends StandingOrder {
     @Override
     public boolean execute() {
         return false;
+    }
+
+    @Override
+    public LocalDate getNextExecutionDate(LocalDate currentDate) {
+        return null;
     }
 }

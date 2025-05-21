@@ -19,6 +19,6 @@ public class BankAccount extends Account {
             System.out.println("Bank's account is unavailable");
             return null;
         }
-        return this.bankAccount;
+        return bankAccount;
     }
 }

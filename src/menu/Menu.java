@@ -235,7 +235,7 @@ public class Menu {
         AccountManager accountManager = new AccountManager();
         BillManager billManager = new BillManager();
         StandingOrderManager standingOrderManager = new StandingOrderManager();
-        TimeSimulator timeSimulator = new TimeSimulator(accountManager, billManager, standingOrderManager);
+        TimeSimulator timeSimulator = new TimeSimulator(accountManager,billManager,standingOrderManager);
         while(!exit) {
             System.out.println("Admin Menu");
             System.out.println("===================================");
@@ -258,6 +258,7 @@ public class Menu {
                     case 2:
                         break;
                     case 3:
+                        showCompanyBillsMenu(sc);
                         break;
                     case 4:
                         break;
@@ -277,6 +278,7 @@ public class Menu {
             }
         }
     }
+
 
     private void simulateTimePassing(Scanner sc, TimeSimulator timeSimulator) {
         System.out.println("\nTime Simulation");
@@ -363,9 +365,10 @@ public class Menu {
 
     private void showBillMenu(User user,Scanner sc){
         BillManager billManager = new BillManager();
-        AccountManager accountManager = new AccountManager();
-        boolean exit = false;
 
+
+
+        boolean exit = false;
         while(!exit) {
             System.out.println("Bill Menu");
             System.out.println("===================================");
@@ -378,23 +381,26 @@ public class Menu {
                 choice = sc.nextInt();
                 sc.nextLine();
 
+
                 switch (choice) {
                     case 1:
-                        billManager.loadBillsforCompanyDate(sc, user.getVAT());
+                        billManager.manualLoadBillsFromFile(sc,user.getVAT());
                         break;
                     case 2:
                         break;
                     case 3:
-                      exit = true;
+                        exit=true;
                         break;
                     default:
                         System.out.println("Invalid choice. Try again.");
+
 
                 }
             }
 
         }
     }
+
 
     private void showStandingOrderMenu(User user,Scanner sc){
         boolean exit = false;
@@ -421,4 +427,62 @@ public class Menu {
             }
         }
     }
+
+    private void showCompanyBillsMenu(Scanner sc){
+        BillManager billManager = new BillManager();
+
+        sc.nextLine();
+
+        System.out.println("\nCompany bills menu");
+        System.out.println("===================================");
+
+        String VAT = "";
+        while (VAT.isEmpty()) {
+            System.out.print("Please enter the company's VAT you want to view: ");
+            VAT = sc.nextLine().trim();
+
+            if (VAT.isEmpty()) {
+                System.out.println("VAT cannot be empty. Please try again.");
+            }
+        }
+
+        boolean exit = false;
+        while(!exit) {
+            System.out.println("Company bills Menu");
+            System.out.println("===================================");
+            System.out.println("1. Show Issued Bills");
+            System.out.println("2. Show Paid Bills");
+            System.out.println("3. Load Company Bills");
+            System.out.println("4. Back to Admin Menu");
+            System.out.print("Enter your choice:");
+            int choice;
+
+            if (sc.hasNextInt()) {
+                choice = sc.nextInt();
+                sc.nextLine();
+
+
+                switch (choice) {
+                    case 1:
+                        billManager.showIssuedBills(VAT);
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        billManager.manualLoadBillsFromFile(sc,VAT);
+                        break;
+                    case 4:
+                        exit = true;
+                    default:
+                        System.out.println("Invalid choice. Try again.");
+
+
+                }
+            }
+
+
+        }
+    }
+
+
 }

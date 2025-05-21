@@ -1,23 +1,27 @@
 package manager;
 
 import model.Bill;
-import model.User;
 import storage.FileStorageManager;
 import storage.Storable;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class BillManager {
     private final List<Bill> bills = new ArrayList<>();
     private final FileStorageManager storageManager = new FileStorageManager();
     private final UserManager userManager = new UserManager();
+
     private final String billsFolderPath = "data/bills/";
     private final String issuedFilePath = billsFolderPath + "issued.csv";
     private final String expiredFilePath = billsFolderPath + "expired.csv";
 
     public BillManager() {
+
+
         loadBillsForToday();
     }
 
@@ -26,261 +30,227 @@ public class BillManager {
         simulateForExpiry(LocalDate.now());
     }
 
-
-    public void loadBillsforCompanyDate(Scanner sc, String issuerVAT){
-        FileStorageManager fileStorageManager = new FileStorageManager();
-        System.out.println("Insert the date of the bills you want to be issued:");
-        String inputDate = sc.next();
-        sc.nextLine();
-        try{
-            LocalDate.parse(inputDate);
-        }
-        catch(Exception e){
-            System.out.println("Invalid date format");
-        }
-        String filename = inputDate + ".csv";
-        File billFile = new File(billsFolderPath + filename);
-
-        if(!billFile.exists()){
-            System.out.println("No bills found for this date " + inputDate);
-        }
-        else{
-
-        }
-    }
     public void loadBillsForDate(LocalDate date) {
         String filename = date.toString() + ".csv";
-
         File billFile = new File(billsFolderPath + filename);
-        List<String> billIssued = new ArrayList<>();
-        //List<String> billExpired = new ArrayList<>();
 
         if (!billFile.exists()) {
-            System.out.println("No bills found for today.");
+            System.out.println("No bills found for " + date);
             return;
         }
 
-        Storable billLoader = new Storable() {
-            @Override
-            public String marshal() {
-                return null;
-            }
+        List<String> billIssued = new ArrayList<>();
+        List<String> billExpired = new ArrayList<>();
 
-            @Override
-            public void unmarshal(String line) {
-                Map<String, String> billFields = new HashMap<>();
-                String[] fields = line.split(",");
-                for (String field : fields) {
-                    String[] keyValue = field.split(":", 2);
-                    if (keyValue.length == 2) {
-                        billFields.put(keyValue[0].trim(), keyValue[1].trim());
-                    }
-                }
+        try (BufferedReader reader = new BufferedReader(new FileReader(billFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
 
                 try {
-                    Bill bill = new Bill(
-                            billFields.get("type"),
-                            billFields.get("paymentCode"),
-                            billFields.get("billNumber"),
-                            userManager.findCustomerByVAT(billFields.get("issuer")),
-                            userManager.findCustomerByVAT(billFields.get("customer")),
-                            Double.parseDouble(billFields.get("amount")),
-                            billFields.get("issueDate"),
-                            billFields.get("dueDate")
-                    );
-                    bills.add(bill);
-                   // LocalDate dueDate = LocalDate.parse(bill.getDueDate());
-                    //if (dueDate.isBefore(date)) {
-                      //  billExpired.add(line);  // ΜΟΝΟ expired
-                    //} else {
-                        billIssued.add(line);   // ΜΟΝΟ μη-expired
-                    //}
+                    Bill bill = parseBill(line);
+                    if (bill != null) {
+                        LocalDate dueDate = LocalDate.parse(bill.getDueDate());
+                        if (dueDate.isBefore(date)) {
+                            if (!isLineInFile(line, expiredFilePath)) {
+                                billExpired.add(line);
+                            }
+                        } else {
+                            if (!isLineInFile(line, issuedFilePath)) {
+                                billIssued.add(line);
+                            }
+                        }
+                    }
                 } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
-                }
-            }
-        };
-
-        storageManager.load(billLoader, billFile.getPath());
-        loadToBillCsv(issuedFilePath, billIssued);
-        //loadToBillCsv(expiredFilePath, billExpired);
-    }
-
-    protected void loadToBillCsv(String filePath, List<String> lines) {
-        File file = new File(filePath);
-
-        Set<String> existingLines = new HashSet<>();
-        if (file.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    existingLines.add(line);
-                }
-            } catch (IOException e) {
-                System.out.println("Error reading existing file: " + e.getMessage());
-            }
-        }
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-            for (String line : lines) {
-                if(!existingLines.contains(line)) {
-                    writer.write(line);
-                    writer.newLine();
+                    System.err.println("Error processing line: " + line);
+                    System.err.println("Error details: " + e.getMessage());
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
+            System.err.println("Error reading bills file: " + e.getMessage());
+            return;
+        }
+
+        appendToFile(issuedFilePath, billIssued);
+        appendToFile(expiredFilePath, billExpired);
+    }
+
+    protected void simulateForExpiry(LocalDate currentDate) {
+        List<String> activeBills = new ArrayList<>();
+        List<String> expiredBills = new ArrayList<>();
+
+        // Create files if they don't exist
+        File issuedFile = new File(issuedFilePath);
+        if (!issuedFile.exists()) {
+            try {
+                issuedFile.createNewFile();
+                return;
+            } catch (IOException e) {
+                System.err.println("Error creating issued bills file: " + e.getMessage());
+                return;
+            }
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                try {
+                    Bill bill = parseBill(line);
+                    if (bill != null) {
+                        LocalDate dueDate = LocalDate.parse(bill.getDueDate());
+                        if (dueDate.isBefore(currentDate)) {
+                            if (!isLineInFile(line, expiredFilePath)) {
+                                expiredBills.add(line);
+                            }
+                        } else {
+                            activeBills.add(line);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing bill: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading issued bills: " + e.getMessage());
+            return;
+        }
+
+        if (!expiredBills.isEmpty()) {
+            appendToFile(expiredFilePath, expiredBills);
+            writeFile(issuedFilePath, activeBills);
+        }
+    }
+
+    private Bill parseBill(String line) {
+        if (line == null || line.trim().isEmpty()) {
+            return null;
+        }
+
+        Map<String, String> billFields = new HashMap<>();
+        String[] fields = line.split(",");
+
+        try {
+            for (String field : fields) {
+                String[] keyValue = field.split(":", 2);
+                if (keyValue.length == 2) {
+                    billFields.put(keyValue[0].trim(), keyValue[1].trim());
+                }
+            }
+
+            // Validate required fields
+            if (billFields.get("amount") == null || billFields.get("dueDate") == null) {
+                System.err.println("Missing required fields in line: " + line);
+                return null;
+            }
+
+            return new Bill(
+                    billFields.get("type"),
+                    billFields.get("paymentCode"),
+                    billFields.get("billNumber"),
+                    userManager.findCustomerByVAT(billFields.get("issuer")),
+                    userManager.findCustomerByVAT(billFields.get("customer")),
+                    Double.parseDouble(billFields.get("amount")),
+                    billFields.get("issueDate"),
+                    billFields.get("dueDate")
+            );
+        } catch (Exception e) {
+            System.err.println("Error parsing bill line: " + line);
+            System.err.println("Error details: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private boolean isLineInFile(String line, String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) return false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String currentLine;
+            while ((currentLine = reader.readLine()) != null) {
+                if (currentLine.trim().equals(line.trim())) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error checking file: " + e.getMessage());
+        }
+        return false;
+    }
+
+    private void appendToFile(String filePath, List<String> lines) {
+        if (lines.isEmpty()) return;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    private void writeFile(String filePath, List<String> lines) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing file: " + e.getMessage());
         }
     }
 
     protected List<Bill> getBillsForCustomer(String vat) {
         List<Bill> result = new ArrayList<>();
 
-        /*Storable loader = new Storable() {
-            @Override
-            public String marshal() {
-                return null;
-            }
-
-            @Override
-            public void unmarshal(String line) {
-                Map<String, String> billFields = new HashMap<>();
-                String[] fields = line.split(",");
-
-                for (String field : fields) {
-                    String[] keyValue = field.split(":", 2);
-                    if (keyValue.length == 2) {
-                        billFields.put(keyValue[0].trim(), keyValue[1].trim());
-                    }
-                }
-
-                try {
-                    Bill bill = new Bill(
-                            billFields.get("type"),
-                            billFields.get("paymentCode"),
-                            billFields.get("billNumber"),
-                            billFields.get("issuer"),
-                            billFields.get("customer"),
-                            Double.parseDouble(billFields.get("amount")),
-                            billFields.get("issueDate"),
-                            billFields.get("dueDate")
-                    );
-*/
-                for(Bill bill : bills) {
-                    if (bill.getCustomer().equals(vat)) {
-                        result.add(bill);
-                    }
-                }
-
-                /* catch (Exception e) {
-                    System.out.println("Error parsing bill: " + e.getMessage());
-                }*/
-
-        //storageManager.load(loader, issuedFilePath);
-        return result;
-    }
-
-
-    protected void simulateForExpiry(LocalDate currentDate) {
-       //evala alli mia lista me olous tous logariasmous tou issued
-        List<Bill> allBills = new ArrayList<>();
-        List<String> expiredBillsLines = new ArrayList<>();
-        List<String> activeBillsLines = new ArrayList<>();
-
-        //diavazei to issued
         try (BufferedReader reader = new BufferedReader(new FileReader(issuedFilePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                Map<String, String> billFields = parseBillLine(line);
-                if (billFields != null) {
-                    Bill bill = createBillFromFields(billFields);
-                    if (bill != null) {
-                        allBills.add(bill);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading issued bills: " + e.getMessage());
-            return;
-        }
-
-        //xwrizei tin lista me olous tous logariasmous se issued kai expired listesb
-        for (Bill bill : allBills) {
-            LocalDate dueDate = LocalDate.parse(bill.getDueDate());
-            if (dueDate.isBefore(currentDate)) {
-                expiredBillsLines.add(bill.marshal());
-            } else {
-                activeBillsLines.add(bill.marshal());
-            }
-        }
-        loadToBillCsv(issuedFilePath, expiredBillsLines);
-        loadToBillCsv(issuedFilePath, activeBillsLines);
-/*
-        //grafei tin expired lista
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(expiredFilePath, true))) {
-            for (String line : expiredBillsLines) {
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error writing to expired bills: " + e.getMessage());
-        }
-
-        //grafei tin nea issued lista
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(issuedFilePath))) {
-            for (String line : activeBillsLines) {
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error updating issued bills: " + e.getMessage());
-        }
-        */
-        System.out.println("Updated " + expiredBillsLines.size() + " expired bills.");
-    }
-
-    public void loadIssuedBills(String vat) {
-        List<Bill> issuedBills = new ArrayList<>();
-
-        Storable loader = new Storable() {
-            @Override
-            public String marshal() {
-                return null;
-            }
-
-            @Override
-            public void unmarshal(String line) {
-                Map<String, String> billFields = new HashMap<>();
-                String[] fields = line.split(",");
-                for (String field : fields) {
-                    String[] keyValue = field.split(":", 2);
-                    if (keyValue.length == 2) {
-                        billFields.put(keyValue[0].trim(), keyValue[1].trim());
-                    }
-                }
+                line = line.trim();
+                if (line.isEmpty()) continue;
 
                 try {
-                    Bill bill = new Bill(
-                            billFields.get("type"),
-                            billFields.get("paymentCode"),
-                            billFields.get("billNumber"),
-                            userManager.findCustomerByVAT(billFields.get("issuer")),
-                            userManager.findCustomerByVAT(billFields.get("customer")),
-                            Double.parseDouble(billFields.get("amount")),
-                            billFields.get("issueDate"),
-                            billFields.get("dueDate")
-                    );
-
-                    if (bill.getIssuer().equals(vat)) {
-                        issuedBills.add(bill);
+                    Bill bill = parseBill(line);
+                    if (bill != null && bill.getCustomer().getVAT().equals(vat)) {
+                        result.add(bill);
                     }
-
                 } catch (Exception e) {
-                    System.out.println("Error loading bill: " + e.getMessage());
+                    System.err.println("Error processing line: " + line);
                 }
             }
-        };
+        } catch (IOException e) {
+            System.err.println("Error reading issued bills: " + e.getMessage());
+        }
 
-        storageManager.load(loader, issuedFilePath);
+        return result;
+    }
+
+    public void showIssuedBills(String vat) {
+        List<Bill> issuedBills = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFilePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                try {
+                    Bill bill = parseBill(line);
+                    if (bill != null && bill.getIssuer().getVAT().equals(vat)) {
+                        issuedBills.add(bill);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing line: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading issued bills: " + e.getMessage());
+        }
 
         if (issuedBills.isEmpty()) {
             System.out.println("No issued bills found for your company.");
@@ -289,46 +259,59 @@ public class BillManager {
             System.out.println("======================================================");
             for (Bill bill : issuedBills) {
                 System.out.printf(
-                        "Type: %-10s | Code: %-10s | Amount: %8.2f | Customer: %-10s | Date: %s | Due: %s\n",
+                        "Type: %-10s | Code: %-10s | Amount: %8.2f | Customer: %-10s | Date: %s | Due: %s%n",
                         bill.getType(), bill.getPaymentCode(), bill.getAmount(),
                         bill.getCustomer(), bill.getIssueDate(), bill.getDueDate()
                 );
             }
             System.out.println("======================================================");
         }
-
-        System.out.println("Press Enter to continue...");
-        new Scanner(System.in).nextLine();
     }
 
-    private Map<String, String> parseBillLine(String line) {
-        Map<String, String> fields = new HashMap<>();
-        String[] parts = line.split(",");
+    public void manualLoadBillsFromFile(Scanner scanner, String vat) {
+        System.out.println("\nLoad bills from file");
+        System.out.println("===================================");
+        System.out.print("Enter the full path of the file to load bills from: ");
+        String filePath = scanner.nextLine().trim();
 
-        for (String part : parts) {
-            String[] kv = part.split(":", 2);
-            if (kv.length == 2) {
-                fields.put(kv[0].trim(), kv[1].trim());
+        File billFile = new File(filePath);
+        if (!billFile.exists()) {
+            System.out.println("File does not exist: " + filePath);
+            return;
+        }
+
+        List<String> billsToAdd = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(billFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Bill bill = parseBill(line);
+                if (bill != null && bill.getIssuer().getVAT().equals(vat)) {
+                    String billLine = bill.marshal();
+                    if (!isLineInFile(billLine, issuedFilePath) &&
+                            !isLineInFile(billLine, expiredFilePath)) {
+                        billsToAdd.add(billLine);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+            return;
+        }
+
+        if (billsToAdd.isEmpty()) {
+            System.out.println("No new bills found for your company in this file.");
+        } else {
+            appendToFile(issuedFilePath, billsToAdd);
+            System.out.println("Added " + billsToAdd.size() + " bills to issued file:");
+            for (String billLine : billsToAdd) {
+                System.out.println("- " + billLine);
             }
         }
-        return fields;
-    }
 
-    private Bill createBillFromFields(Map<String, String> fields) {
-        try {
-            return new Bill(
-                    fields.get("type"),
-                    fields.get("paymentCode"),
-                    fields.get("billNumber"),
-                    userManager.findCustomerByVAT(fields.get("issuer")),
-                    userManager.findCustomerByVAT(fields.get("customer")),
-                    Double.parseDouble(fields.get("amount")),
-                    fields.get("issueDate"),
-                    fields.get("dueDate")
-            );
-        } catch (Exception e) {
-            System.out.println("Error creating bill: " + e.getMessage());
-            return null;
-        }
+        System.out.println("\nPress enter to continue...");
+        scanner.nextLine();
     }
 }
+
+
