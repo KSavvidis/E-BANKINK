@@ -1,14 +1,19 @@
 package manager;
 
 import model.Account;
+import transaction.DepositTransaction;
+import transaction.Transaction;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TimeSimulator{
     private AccountManager accountManager;
     private BillManager billManager;
     private StandingOrderManager standingOrderManager;
     private static LocalDate currentDate;
+    private Map<Account, Double> monthlyRate = new HashMap<>();
    /* public TimeSimulator(AccountManager accountManager, BillManager billManager){
         this.accountManager = new AccountManager();
         this.billManager = new BillManager();
@@ -47,10 +52,19 @@ public class TimeSimulator{
         billManager.simulateForExpiry(currentDate);
     }
     private void rate(){
+
         for(Account account : accountManager.getAllAccounts()){
-            double rate =account.getRate();
-            double interest = account.getBalance() * rate/365.0;
-            account.setBalance(account.getBalance() + interest);
+            double dailyInterest = account.getBalance() * account.getRate()/365.0;
+            if(monthlyRate.containsKey(account)){
+                monthlyRate.put(account, monthlyRate.get(account) + dailyInterest);
+            }
+            else {
+                monthlyRate.put(account, dailyInterest);
+            }
+
+            if(currentDate.getDayOfMonth() == 30){
+                Transaction depositRate = new DepositTransaction()
+            }
         }
     }
 
