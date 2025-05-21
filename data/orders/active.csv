@@ -4,4 +4,4 @@ type:TransferOrder,orderId:TO1742141799855921,title:FRENCH,description:GIATRAKOS
 type:PaymentOrder,orderId:PO1742141799855922,paymentCode:RF10203040,title:Cosmote,description:Mobile Bill,customer:067688302,maxAmount:60,startDate:2025-04-01,endDate:2025-12-31,fee:0.3,chargeAccount:GR100202503111546001
 type:PaymentOrder,orderId:PO1742141799855923,paymentCode:RF10203043,title:Mobile Payment,description:,customer:067688307,maxAmount:50,startDate:2025-04-01,endDate:2025-12-31,fee:0.3,chargeAccount:GR100202503111546005
 type:PaymentOrder,orderId:PO1742141799855924,paymentCode:RF10203041,title:Cosmote Fix,description:Statheri,customer:067688303,maxAmount:60,startDate:2025-04-01,endDate:2025-12-31,fee:0.3,chargeAccount:GR100202503111546002
-type:PaymentOrder,orderId:PO1742141799855925,paymentCode:RF10203050,title:Nova TV,description:,customer:067688307,maxAmount:45,startDate:2025-04-01,endDate:2025-12-31,fee:0.3,chargeAccount:GR100202503111546005
+type:PaymentOrder,orderId:PO1742141799855925,paymentCode:RF10203050,title:Nova TV,description:,customer: 7,maxAmount:45,startDate:2025-04-01,endDate:2025-12-31,fee:0.3,chargeAccount:GR100202503111546005

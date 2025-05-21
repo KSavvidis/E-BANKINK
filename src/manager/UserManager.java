@@ -120,8 +120,6 @@ public class UserManager {
     }
 
     public void showCustomers(Scanner sc){
-
-
         if(users.isEmpty()) {
             loadUsers();
         }
