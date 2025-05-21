@@ -313,5 +313,3 @@ public class BillManager {
         scanner.nextLine();
     }
 }
-
-

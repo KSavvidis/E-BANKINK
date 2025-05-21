@@ -2,13 +2,8 @@ package model;
 
 import manager.TimeSimulator;
 import manager.TransactionManager;
-import transaction.Transaction;
-import transaction.TransferOrderTransaction;
-import transaction.TransferTransaction;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 public class TransferOrder extends StandingOrder {
     private double amount;
