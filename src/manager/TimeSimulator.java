@@ -52,7 +52,7 @@ public class TimeSimulator{
         billManager.simulateForExpiry(currentDate);
     }
     private void rate(){
-
+/*
         for(Account account : accountManager.getAllAccounts()){
             double dailyInterest = account.getBalance() * account.getRate()/365.0;
             if(monthlyRate.containsKey(account)){
@@ -63,9 +63,9 @@ public class TimeSimulator{
             }
 
             if(currentDate.getDayOfMonth() == 30){
-                Transaction depositRate = new DepositTransaction()
+                Transaction depositRate = new DepositTransaction(new TransactionManager());
             }
-        }
+        }*/
     }
 
     private void fee(){
