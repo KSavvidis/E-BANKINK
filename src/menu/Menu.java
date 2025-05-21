@@ -110,7 +110,7 @@ public class Menu {
             System.out.println("===================================");
             System.out.println("1. Overview");
             System.out.println("2. Transactions");
-            System.out.println("5. Back to login screen");
+            System.out.println("3. Back to login screen");
             System.out.print("Enter your choice:");
 
             if (sc.hasNextInt()) {
@@ -273,7 +273,6 @@ public class Menu {
         }
     }
 
-
     private void simulateTimePassing(Scanner sc, TimeSimulator timeSimulator) {
         System.out.println("\nTime Simulation");
         System.out.println("===================================");
@@ -288,6 +287,7 @@ public class Menu {
             System.out.println("Invalid date format. Please use YYYY-MM-DD format.");
         }
     }
+
     private void showCompanyMenu(User user,Scanner sc){
         boolean exit = false;
 
@@ -359,9 +359,6 @@ public class Menu {
 
     private void showBillMenu(User user,Scanner sc){
         BillManager billManager = new BillManager();
-
-
-
         boolean exit = false;
         while(!exit) {
             System.out.println("Bill Menu");
@@ -374,13 +371,12 @@ public class Menu {
             if (sc.hasNextInt()) {
                 choice = sc.nextInt();
                 sc.nextLine();
-
-
                 switch (choice) {
                     case 1:
                         billManager.manualLoadBillsFromFile(sc,user.getVAT());
                         break;
                     case 2:
+                        billManager.showBills(user.getVAT(), billManager.getPaidFilePath());
                         break;
                     case 3:
                         exit=true;
@@ -415,6 +411,9 @@ public class Menu {
                         break;
                     case 2:
                         break;
+                    case 3:
+                        exit = true;
+                        break;
                     default:
                         System.out.println("Invalid choice. Try again.");
                 }
@@ -424,7 +423,6 @@ public class Menu {
 
     private void showCompanyBillsMenu(Scanner sc){
         BillManager billManager = new BillManager();
-
         sc.nextLine();
 
         System.out.println("\nCompany bills menu");
@@ -439,7 +437,6 @@ public class Menu {
                 System.out.println("VAT cannot be empty. Please try again.");
             }
         }
-
         boolean exit = false;
         while(!exit) {
             System.out.println("Company bills Menu");
@@ -454,13 +451,12 @@ public class Menu {
             if (sc.hasNextInt()) {
                 choice = sc.nextInt();
                 sc.nextLine();
-
-
                 switch (choice) {
                     case 1:
-                        billManager.showIssuedBills(VAT);
+                        billManager.showBills(VAT, billManager.getIssuedFilePath());
                         break;
                     case 2:
+                        billManager.showBills(VAT, billManager.getPaidFilePath());
                         break;
                     case 3:
                         billManager.manualLoadBillsFromFile(sc,VAT);

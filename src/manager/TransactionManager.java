@@ -198,9 +198,8 @@ public class TransactionManager {
         System.out.printf("Payment of %.2f for bill %s completed. Updated account balance: %.2f\n",
                 selectedBill.getAmount(), selectedBill.getPaymentCode(), selectedAccount.getBalance());
 
-
+        billManager.loadBillsFromIssuedToPaidFile(rf);
         updateAccountInFile(selectedAccount);
-
 
         recordTransaction(selectedAccount, "Bill Payment", -selectedBill.getAmount());
     }

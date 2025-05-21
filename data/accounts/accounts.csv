@@ -1,4 +1,4 @@
-type:PersonalAccount,iban:GR100202503111546001,primaryOwner:067688302,dateCreated:2025-03-01,rate:0,00,balance:1055,00,coOwner:067688304
+type:PersonalAccount,iban:GR100202503111546001,primaryOwner:067688302,dateCreated:2025-03-01,rate:0.00,balance:964.00,coOwner:067688304
 type:PersonalAccount,iban:GR100202503111546002,primaryOwner:067688303,dateCreated:2025-03-01,rate:0.00,balance:2001.00
 type:PersonalAccount,iban:GR100202503111546003,primaryOwner:067688304,dateCreated:2025-03-01,rate:0.00,balance:3052.00
 type:PersonalAccount,iban:GR100202503111546004,primaryOwner:067688302,dateCreated:2025-03-01,rate:0.00,balance:1743.00,coOwner:067688303

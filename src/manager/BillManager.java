@@ -18,6 +18,7 @@ public class BillManager {
     private final String billsFolderPath = "data/bills/";
     private final String issuedFilePath = billsFolderPath + "issued.csv";
     private final String expiredFilePath = billsFolderPath + "expired.csv";
+    private final String paidFilePath = billsFolderPath + "paid.csv";
 
     public BillManager() {
 
@@ -230,50 +231,47 @@ public class BillManager {
         return result;
     }
 
-    public void showIssuedBills(String vat) {
-        List<Bill> issuedBills = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFilePath))) {
+    public void showBills(String vat, String filePath) {
+        File issuedFile = new File(filePath);
+        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFile))) {
+            if (!issuedFile.exists() || issuedFile.length() == 0) {
+                System.out.println("No issued bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
+                return;
+            }
             String line;
+            int i = 0;
             while ((line = reader.readLine()) != null) {
-                line = line.trim();
                 if (line.isEmpty()) continue;
-
-                try {
-                    Bill bill = parseBill(line);
-                    if (bill != null && bill.getIssuer().getVAT().equals(vat)) {
-                        issuedBills.add(bill);
+                Bill bill = parseBill(line);
+                if (bill != null && bill.getIssuer().getVAT().equals(vat)) {
+                    String billLine = bill.marshal();
+                    if (i == 0) {
+                        if(filePath.equals(issuedFilePath)) {
+                            System.out.println("\nIssued Bills:");
+                            System.out.println("======================================================");
+                        }
+                        else{
+                            System.out.println("\nPaid Bills:");
+                            System.out.println("======================================================");
+                        }
                     }
-                } catch (Exception e) {
-                    System.err.println("Error processing line: " + line);
+                    i++;
+                    System.out.println(billLine);
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error reading issued bills: " + e.getMessage());
+            System.err.println("Error reading bills: " + e.getMessage());
         }
-
-        if (issuedBills.isEmpty()) {
-            System.out.println("No issued bills found for your company.");
-        } else {
-            System.out.println("\nIssued Bills:");
-            System.out.println("======================================================");
-            for (Bill bill : issuedBills) {
-                System.out.printf(
-                        "Type: %-10s | Code: %-10s | Amount: %8.2f | Customer: %-10s | Date: %s | Due: %s%n",
-                        bill.getType(), bill.getPaymentCode(), bill.getAmount(),
-                        bill.getCustomer(), bill.getIssueDate(), bill.getDueDate()
-                );
-            }
-            System.out.println("======================================================");
-        }
+        System.out.println("======================================================");
     }
 
-    public void manualLoadBillsFromFile(Scanner scanner, String vat) {
+
+    public void manualLoadBillsFromFile(Scanner sc, String vat) {
         System.out.println("\nLoad bills from file");
         System.out.println("===================================");
         System.out.print("Enter the full path of the file to load bills from: ");
-        String filePath = scanner.nextLine().trim();
-
+        String filePath = sc.next();
+        sc.nextLine();
         File billFile = new File(filePath);
         if (!billFile.exists()) {
             System.out.println("File does not exist: " + filePath);
@@ -309,7 +307,64 @@ public class BillManager {
             }
         }
 
-        System.out.println("\nPress enter to continue...");
-        scanner.nextLine();
+        System.out.println("Press any key to continue...");
+        sc.nextLine();
+    }
+
+    public String getIssuedFilePath(){
+        return issuedFilePath;
+    }
+
+    public String getPaidFilePath(){
+        return paidFilePath;
+    }
+
+    public void loadBillsFromIssuedToPaidFile(String rf) {
+        List<String> nonPaidBills = new ArrayList<>();
+        List<String> paidBills = new ArrayList<>();
+
+        File issuedFile = new File(issuedFilePath);
+        if (!issuedFile.exists()) {
+            try {
+                issuedFile.createNewFile();
+                return;
+            } catch (IOException e) {
+                System.err.println("Error creating issued bills file: " + e.getMessage());
+                return;
+            }
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                try {
+                    Bill bill = parseBill(line);
+                    if (bill != null) {
+
+                        if (rf.equals(bill.getPaymentCode())) {
+                            if (!isLineInFile(line, paidFilePath)) {
+                                paidBills.add(line);
+                            }
+                        } else {
+                            nonPaidBills.add(line);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing bill: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading issued bills: " + e.getMessage());
+            return;
+        }
+
+        if (!paidBills.isEmpty()) {
+            appendToFile(paidFilePath, paidBills);
+            writeFile(issuedFilePath, nonPaidBills);
+        }
+
     }
 }
