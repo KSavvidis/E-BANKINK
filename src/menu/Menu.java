@@ -165,7 +165,7 @@ public class Menu {
         AccountManager accountManager = new AccountManager();
         BillManager billManager = new BillManager();
         TransactionManager transactionManager = new TransactionManager(accountManager,billManager);
-
+        boolean exit = false;
         if (!accountManager.hasAccounts(user.getVAT())) {
             System.out.println("You don't have any accounts to perform transactions on.");
             System.out.println("Press any key to continue...");
@@ -173,7 +173,7 @@ public class Menu {
             return;
         }
 
-        while (true) {
+        while (!exit) {
             System.out.println("\nTransactions Menu");
             System.out.println("===================================");
             System.out.println("1. Deposit");
@@ -185,10 +185,6 @@ public class Menu {
 
             int choice = sc.nextInt();
             sc.nextLine();
-
-            if(choice == 5){
-                return;
-            }
 
             Transaction transaction = null;
             switch (choice) {
@@ -207,6 +203,9 @@ public class Menu {
                 case 4:
                    // transactionManager.paymentOrder(selectedAccount.getIban(), selectedAccount.getPrimaryOwner(), sc);
                     transaction = new PaymentTransaction(transactionManager);
+                    break;
+                case 5:
+                    exit = true;
                     break;
                 default:
                     System.out.println("Invalid choice. Try again.");

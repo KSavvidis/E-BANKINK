@@ -1,8 +1,10 @@
 package manager;
 
 import model.Account;
+import model.BankAccount;
 import transaction.DepositTransaction;
 import transaction.Transaction;
+import transaction.TransferTransaction;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -52,7 +54,8 @@ public class TimeSimulator{
         billManager.simulateForExpiry(currentDate);
     }
     private void rate(){
-/*
+        BankAccount bankAccount = BankAccount.getInstance();
+        TransactionManager transactionManager = new TransactionManager(accountManager, billManager);
         for(Account account : accountManager.getAllAccounts()){
             double dailyInterest = account.getBalance() * account.getRate()/365.0;
             if(monthlyRate.containsKey(account)){
@@ -61,11 +64,14 @@ public class TimeSimulator{
             else {
                 monthlyRate.put(account, dailyInterest);
             }
-
             if(currentDate.getDayOfMonth() == 30){
-                Transaction depositRate = new DepositTransaction(new TransactionManager());
+                if(monthlyRate.get(account) > 0){
+                TransferTransaction transferRate = new TransferTransaction(transactionManager);
+                transferRate.execute(bankAccount, account, monthlyRate.get(account), "Monthly Rate");
+                monthlyRate.put(account, 0.0);
+                }
             }
-        }*/
+        }
     }
 
     private void fee(){

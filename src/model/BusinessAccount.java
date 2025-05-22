@@ -11,7 +11,7 @@ public class BusinessAccount extends Account {
     @Override
     public String marshal() {
         return String.format("type:BusinessAccount,iban:%s,primaryOwner:%s,dateCreated:%s,rate:%.2f,balance:%.2f,fee:%.2f",
-                iban, primaryOwner, dateCreated, rate, balance,fee);
+                iban, primaryOwner.getVAT(), dateCreated, rate, balance,fee);
     }
 
     @Override

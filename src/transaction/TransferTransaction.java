@@ -17,4 +17,7 @@ public class TransferTransaction implements Transaction {
         transactionManager.performTransfer(account, sc);
     }
 
+    public void execute(Account sender, Account receiver, double amount, String reason) {
+        transactionManager.performOrderTransfer(sender, receiver, amount, reason);
+    }
 }
