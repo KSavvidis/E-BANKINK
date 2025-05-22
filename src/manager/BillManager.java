@@ -19,7 +19,9 @@ public class BillManager {
     private final String paidFilePath = billsFolderPath + "paid.csv";
 
     public BillManager() {
-
+        createFileIfNotExists(issuedFilePath);
+        createFileIfNotExists(expiredFilePath);
+        createFileIfNotExists(paidFilePath);
 
         loadBillsForToday();
     }
@@ -27,6 +29,17 @@ public class BillManager {
     public void loadBillsForToday() {
         loadBillsForDate(LocalDate.now());
         simulateForExpiry(LocalDate.now());
+    }
+
+    private void createFileIfNotExists(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                System.err.println("Error creating file: " + filePath);
+            }
+        }
     }
 
     public void loadBillsForDate(LocalDate date) {
@@ -246,6 +259,7 @@ public class BillManager {
     }
     public void showBills(String vat, String filePath) {
         File issuedPaidFile = new File(filePath);
+
         try (BufferedReader reader = new BufferedReader(new FileReader(issuedPaidFile))) {
             if (!issuedPaidFile.exists() || issuedPaidFile.length() == 0) {
                 System.out.println("No issued/paid bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
@@ -271,6 +285,10 @@ public class BillManager {
                     i++;
                     System.out.println(billLine);
                 }
+                else{
+                    System.out.println("No issued/paid bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
+                }
+
             }
         } catch (IOException e) {
             System.err.println("Error reading bills: " + e.getMessage());

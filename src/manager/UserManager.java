@@ -183,12 +183,15 @@ public class UserManager {
             for (Account acc : allAccounts) {
                 boolean isPrimary = userVatNumber.equals(acc.getPrimaryOwner().getVAT());
                 boolean isCoOwner = false;
-                for(Customer coOwner: acc.getCoOwner()){
-                    if(coOwner != null && coOwner.getVAT().equals(userVatNumber)){
+                if (acc.getCoOwner() != null) {
+
+                for (Customer coOwner : acc.getCoOwner()) {
+                    if (coOwner != null && coOwner.getVAT().equals(userVatNumber)) {
                         isCoOwner = true;
                         break;
                     }
                 }
+            }
                 if (isPrimary || isCoOwner) {
                     String role = isPrimary ? "Primary Owner" : "Co-Owner";
                     System.out.printf(" IBAN: %-22s Balance: %10.2f  [%s]\n", acc.getIban(), acc.getBalance(), role);

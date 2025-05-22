@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 import model.Account;
 import model.BankAccount;
+import model.Customer;
 import model.User;
 import transaction.*;
 
@@ -115,7 +116,7 @@ public class Menu {
 
             if (sc.hasNextInt()) {
                 int choice = sc.nextInt();
-                sc.nextLine(); // consume newline
+                sc.nextLine();
                 switch (choice) {
                     case 1:
                         showOverviewMenu(user, sc);
@@ -226,6 +227,8 @@ public class Menu {
         boolean exit = false;
         AccountManager accountManager = new AccountManager();
         BillManager billManager = new BillManager();
+        UserManager userManager = new UserManager();
+        TransactionManager transactionManager = new TransactionManager(accountManager,billManager);
         StandingOrderManager standingOrderManager = new StandingOrderManager();
         TimeSimulator timeSimulator = new TimeSimulator(accountManager,billManager,standingOrderManager);
         while(!exit) {
@@ -234,13 +237,14 @@ public class Menu {
             System.out.println("1. Customers");
             System.out.println("2. Bank Accounts");
             System.out.println("3. Company Bills");
-            System.out.println("5. List Standing Orders");
-            System.out.println("6. Pay Customer's Bills");
-            System.out.println("7. Simulate Time Passing");
-            System.out.println("8. Back to login screen");
+            System.out.println("4. List Standing Orders");
+            System.out.println("5. Pay Customer's Bills");
+            System.out.println("6. Simulate Time Passing");
+            System.out.println("7. Back to login screen");
             System.out.print("Enter your choice:");
 
             int choice;
+
             if (sc.hasNextInt()) {
                 choice = sc.nextInt();
                 switch (choice) {
@@ -254,15 +258,45 @@ public class Menu {
                         showCompanyBillsMenu(sc);
                         break;
                     case 4:
+                        standingOrderManager.ListStandingOrders();
                         break;
                     case 5:
+                        sc.nextLine(); // Καθαρίζει το buffer από προηγούμενο sc.nextInt()
+                        String VAT = "";
+                        Transaction transaction = null;
+                        Customer customer = null;
+
+                        while (true) {
+                            System.out.print("Please enter the company's VAT you want to view: ");
+                            VAT = sc.nextLine().trim();
+
+                            if (VAT.isEmpty()) {
+                                System.out.println("VAT cannot be empty. Please try again.");
+                                continue;
+                            }
+
+                            customer = userManager.findCustomerByVAT(VAT);
+                            if (customer == null) {
+                                System.out.println("No company found with this VAT. Please try again.");
+                                continue;
+                            }
+
+                            break;
+                        }
+
+                        Account Acc = accountManager.selectAccountByUser(sc, VAT);
+                        if (Acc == null) {
+                            System.out.println("No accounts found.");
+                            break;
+                        }
+
+                        transaction = new PaymentTransaction(transactionManager);
+                        transaction.execute(Acc, sc);
                         break;
                     case 6:
-                        break;
-                    case 7:
                         simulateTimePassing(sc, timeSimulator);
                         break;
-                    case 8:
+                    case 7:
                         exit = true;
                 }
             } else {
@@ -331,9 +365,7 @@ public class Menu {
             System.out.println("===================================");
             System.out.println("1. List Customers");
             System.out.println("2. Print Customer Information");
-            System.out.println("3. Update Customer");
-            System.out.println("4. Delete Customer");
-            System.out.println("5. Back to Admin Menu");
+            System.out.println("3. Back to Admin Menu");
             System.out.print("Enter your choice: ");
 
             if(sc.hasNextInt()){
@@ -347,10 +379,6 @@ public class Menu {
                         userManager.showCustomerInfo(sc);
                         break;
                     case 3:
-                        break;
-                    case 4:
-                        break;
-                    case 5:
                         return;
                     default:
                         System.out.println("Invalid choice. Try again.");
@@ -428,6 +456,7 @@ public class Menu {
 
     private void showCompanyBillsMenu(Scanner sc){
         BillManager billManager = new BillManager();
+        UserManager userManager = new UserManager();
         sc.nextLine();
 
         System.out.println("\nCompany bills menu");
@@ -440,6 +469,11 @@ public class Menu {
 
             if (VAT.isEmpty()) {
                 System.out.println("VAT cannot be empty. Please try again.");
+            }
+
+            if (userManager.findCustomerByVAT(VAT) == null) {
+                System.out.println("No company found with this VAT. Please try again.");
+                continue;
             }
         }
         boolean exit = false;

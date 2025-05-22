@@ -13,6 +13,7 @@ public class StandingOrderManager {
     private String standingOrdersFilePath = "data/orders/active.csv";
     private FileStorageManager storageManager;
     private List<StandingOrder> standingOrders = new ArrayList<>();
+
     private String issuedFilePath = "data/bills/issued.csv";
     private List<FailedOrder> failedOrders = new ArrayList<>();
     public StandingOrderManager() {
@@ -145,6 +146,10 @@ public class StandingOrderManager {
             }
 
         }
+    }
+
+    public List<StandingOrder> ListStandingOrders(){
+        return standingOrders;
     }
 
     public void failedForTransfer(){
