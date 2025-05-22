@@ -56,8 +56,8 @@ public class Bill implements Storable {
         sb.append("type:").append(type)
         .append(",paymentCode:").append(paymentCode)
         .append(",billNumber:").append(billNumber)
-        .append(",issuer:").append(issuer)
-        .append(",customer:").append(customer)
+        .append(",issuer:").append(issuer.getVAT())
+        .append(",customer:").append(customer.getVAT())
         .append(",amount:").append(String.format("%.2f", amount))
         .append(",issueDate:").append(issueDate)
         .append(",dueDate:").append(dueDate);
