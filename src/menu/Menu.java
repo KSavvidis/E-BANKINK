@@ -73,34 +73,34 @@ public class Menu {
         boolean exit = false;
         int times = 3;
         while (!exit) {
-        if(times != 0) {
-            User user = userManager.authenticate();//pairnei to type
-            if (user != null) {
-                switch (user.getType()) {//tsekarei to type
-                    case "Individual":
-                        exit = true;
-                        showIndividualMenu(user, sc);
-                        break;
-                    case "Admin":
-                        exit = true;
-                        showAdminMenu(sc);
-                        break;
-                    case "Company":
-                        exit = true;
-                        showCompanyMenu(user, sc);
-                        break;
-                    default:
-                        System.out.println("Unknown user type.");
+            if(times != 0) {
+                User user = userManager.authenticate();//pairnei to type
+                if (user != null) {
+                    switch (user.getType()) {//tsekarei to type
+                        case "Individual":
+                            exit = true;
+                            showIndividualMenu(user, sc);
+                            break;
+                        case "Admin":
+                            exit = true;
+                            showAdminMenu(sc);
+                            break;
+                        case "Company":
+                            exit = true;
+                            showCompanyMenu(user, sc);
+                            break;
+                        default:
+                            System.out.println("Unknown user type.");
+                    }
+                } else {
+                    --times;
+                    System.out.println("Please try again. You have " + times + " more tries left");
                 }
-            } else {
-                --times;
-                System.out.println("Please try again. You have " + times + " more tries left");
             }
-        }
-        else {
-            System.out.println("You have no tries left.");
-            exit = true;
-        }
+            else {
+                System.out.println("You have no tries left.");
+                exit = true;
+            }
         }
     }
 
@@ -202,7 +202,7 @@ public class Menu {
                     transaction = new TransferTransaction(transactionManager);
                     break;
                 case 4:
-                   // transactionManager.paymentOrder(selectedAccount.getIban(), selectedAccount.getPrimaryOwner(), sc);
+                    // transactionManager.paymentOrder(selectedAccount.getIban(), selectedAccount.getPrimaryOwner(), sc);
                     transaction = new PaymentTransaction(transactionManager);
                     break;
                 case 5:
@@ -247,6 +247,7 @@ public class Menu {
 
             if (sc.hasNextInt()) {
                 choice = sc.nextInt();
+                sc.nextLine();
                 switch (choice) {
                     case 1:
                         showCustomerMenu(sc);
@@ -258,18 +259,17 @@ public class Menu {
                         showCompanyBillsMenu(sc);
                         break;
                     case 4:
-                        standingOrderManager.ListStandingOrders();
+                        //standingOrderManager.ListStandingOrders();
                         break;
                     case 5:
-                        sc.nextLine(); // Καθαρίζει το buffer από προηγούμενο sc.nextInt()
                         String VAT = "";
                         Transaction transaction = null;
                         Customer customer = null;
 
                         while (true) {
                             System.out.print("Please enter the company's VAT you want to view: ");
-                            VAT = sc.nextLine().trim();
-
+                            VAT = sc.next();
+                            sc.nextLine();
                             if (VAT.isEmpty()) {
                                 System.out.println("VAT cannot be empty. Please try again.");
                                 continue;

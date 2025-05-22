@@ -1,14 +1,23 @@
 package model;
 
+import java.time.LocalDate;
+
 public class FailedOrder {
-    private final int maxTries = 4;
+    private final int maxTries = 2;
     private int currentTry = 0;
     private StandingOrder order;
-
+    private LocalDate lastAttemptDate = null;
     public FailedOrder(StandingOrder order) {
         this.order = order;
     }
 
+    public LocalDate getLastAttemptDate() {
+        return lastAttemptDate;
+    }
+
+    public void setLastAttemptDate(LocalDate lastAttemptDate) {
+        this.lastAttemptDate = lastAttemptDate;
+    }
     public void resetCurrentTry(){
         currentTry = 0;
     }

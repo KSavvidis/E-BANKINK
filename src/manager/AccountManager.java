@@ -293,7 +293,7 @@ public class AccountManager {
             else {
                 monthlyRate.put(account, dailyInterest);
             }
-            if(currentDate.getDayOfMonth() == 30){
+            if(currentDate.getDayOfMonth() == currentDate.lengthOfMonth()) {
                 if(monthlyRate.get(account) > 0){
                     TransferTransaction transferRate = new TransferTransaction(transactionManager);
                     transferRate.execute(bankAccount, account, monthlyRate.get(account), "Monthly Rate");
@@ -307,7 +307,7 @@ public class AccountManager {
     public void applyFee(LocalDate currentDate, TransactionManager transactionManager) {
         BankAccount bankAccount = BankAccount.getInstance();
 
-        if(currentDate.getDayOfMonth() == 30){
+        if(currentDate.getDayOfMonth() == currentDate.lengthOfMonth()) {
             for(Account account : accounts) {
                 if(account instanceof BusinessAccount){
                     BusinessAccount businessAccount = (BusinessAccount) account;

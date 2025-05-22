@@ -3,14 +3,17 @@ package manager;
 import model.*;
 import storage.FileStorageManager;
 import storage.Storable;
+
+import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
-
+import java.util.stream.Collectors;
 
 public class StandingOrderManager {
-    private final String standingOrdersFilePath = "data/orders/active.csv";
+    private String standingOrdersFilePath = "data/orders/active.csv";
     private FileStorageManager storageManager;
     private List<StandingOrder> standingOrders = new ArrayList<>();
+    private String issuedFilePath = "data/bills/issued.csv";
     private List<FailedOrder> failedOrders = new ArrayList<>();
     public StandingOrderManager() {
         storageManager = new FileStorageManager();
@@ -93,6 +96,7 @@ public class StandingOrderManager {
         AccountManager accountManager = new AccountManager();
         BillManager billManager = new BillManager();
         TransactionManager transactionManager = new TransactionManager(accountManager, billManager);
+        List<Bill> duePayments = new ArrayList<>();
 
         Set<String> failedOrderIds = new HashSet<>();
         for (FailedOrder failedOrder : failedOrders) {
@@ -101,6 +105,7 @@ public class StandingOrderManager {
                 failedOrderIds.add(order.getOrderID());
             }
         }
+
         List<StandingOrder> successfulOrders = new ArrayList<>();
         for (StandingOrder order : standingOrders) {
             if (!failedOrderIds.contains(order.getOrderID())) {
@@ -111,7 +116,7 @@ public class StandingOrderManager {
 
         for(StandingOrder standingOrder : standingOrders){
             if(standingOrder instanceof PaymentOrder){
-                List<Bill> duePayments = billManager.findForRF(((PaymentOrder) standingOrder).getPaymentCode());
+                duePayments = billManager.findForRF(((PaymentOrder) standingOrder).getPaymentCode());
                 for(Bill bill : duePayments){
                     if(!transactionManager.performOrderPayment(standingOrder.getChargeAccount(), bill)){
                         FailedOrder failed = new FailedOrder((PaymentOrder)standingOrder);
@@ -138,12 +143,12 @@ public class StandingOrderManager {
                 if(failedOrder.OverFailedAttempts())
                     continue;
                 if(failedOrder.getLastAttemptDate().equals(currentDate))
-                    if(!transactionManager.performOrderPayment(paymentOrder.getChargeAccount(), bill)){
-                        failedOrder.increaseCurrentTry();
-                    }
-                    else{
-                        failedOrders.remove(failedOrder);
-                    }
+                if(!transactionManager.performOrderPayment(paymentOrder.getChargeAccount(), bill)){
+                    failedOrder.increaseCurrentTry();
+                }
+                else{
+                    failedOrders.remove(failedOrder);
+                }
             }
 
         }
@@ -185,15 +190,15 @@ public class StandingOrderManager {
                 if(currentDate.getDayOfMonth() == ((TransferOrder) standingOrder).getDayOfMonth()){
                     if(((currentDate.getMonthValue() - (standingOrder).getStartDate().getMonthValue()) %
                             ((TransferOrder) standingOrder).getFrequencyInMonths()) == 0){
-                        if(!transactionManager.performOrderTransfers(standingOrder.getChargeAccount()
-                                , transferOrder.getCreditAccount()
-                                , transferOrder.getAmount()
-                                , standingOrder.getDescription())){
-                            FailedOrder failed = new FailedOrder(standingOrder);
-                            failed.increaseCurrentTry();
-                            System.out.println(failed.getCurrentTry());
-                            failedOrders.add(failed);
-                            failed.setLastAttemptDate(currentDate);
+                       if(!transactionManager.performOrderTransfers(standingOrder.getChargeAccount()
+                                                                , transferOrder.getCreditAccount()
+                                                                , transferOrder.getAmount()
+                                                                , standingOrder.getDescription())){
+                           FailedOrder failed = new FailedOrder(standingOrder);
+                           failed.increaseCurrentTry();
+                           System.out.println(failed.getCurrentTry());
+                           failedOrders.add(failed);
+                           failed.setLastAttemptDate(currentDate);
                         }
                     }
                 }
@@ -203,10 +208,7 @@ public class StandingOrderManager {
 
     public void resetCounter(LocalDate currentDate){
         for(FailedOrder failedOrder : failedOrders){
-            if(currentDate.isEqual(failedOrder.getLastAttemptDate().plusMonths(1))){
-                failedOrder.resetCurrentTry();
-            }
-
+            failedOrder.resetCurrentTry();
         }
 
     }

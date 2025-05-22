@@ -54,11 +54,17 @@ public class TimeSimulator{
         accountManager.applyFee(currentDate, transactionManager);
         billManager.loadBillsForDate(currentDate);
         billManager.simulateForExpiry(currentDate);
-        standingOrderManager.findBillsForPay();
+        standingOrderManager.findBillsForPay(currentDate);
         standingOrderManager.transferTheOrders(currentDate);
-        standingOrderManager.failedForPayment();
+        standingOrderManager.failedForPayment(currentDate);
+        standingOrderManager.failedForTransfer(currentDate);
         if(currentDate.getDayOfMonth() == 1){
             standingOrderManager.resetCounter(currentDate);
+        }
+        if (!billManager.hasBillsForDate(currentDate)) {
+            System.out.println("No bills found today.");
+        } else {
+            billManager.loadBillsForDate(currentDate);
         }
         System.out.println("-----------------------------------------");
     }
