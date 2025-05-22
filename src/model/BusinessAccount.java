@@ -19,5 +19,8 @@ public class BusinessAccount extends Account {
         // keni giati ginetai sto accmanager
     }
 
+    public double getFee(){
+        return fee;
+    }
 
 }

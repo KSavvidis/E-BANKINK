@@ -3,10 +3,12 @@ package manager;
 import model.*;
 import storage.FileStorageManager;
 import storage.Storable;
+import transaction.TransferTransaction;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.time.LocalDate;
 import java.util.*;
 
 public class AccountManager {
@@ -64,7 +66,8 @@ public class AccountManager {
                                 Double.parseDouble(map.get("rate")),
                                 Double.parseDouble(map.get("balance"))
                         );
-                    } else if (type.equals("BusinessAccount")) {
+                    }
+                    else if (type.equals("BusinessAccount")) {
                         acc = new BusinessAccount(
                                 map.get("iban"),
                                 userManager.findCustomerByVAT(map.get("primaryOwner")),
@@ -74,6 +77,14 @@ public class AccountManager {
                                 Double.parseDouble(map.get("fee"))
                         );
                     }
+                  /*  else if (type.equals("BankAccount")) {
+                        acc = new BankAccount(
+                                map.get("iban"),
+                                Double.parseDouble(map.get("balance")),
+                                map.get("primaryOwner")
+                                );
+
+                    }*/
                 } catch (Exception e) {
                     System.out.println("Error parsing account: " + e.getMessage());
                 }
@@ -81,8 +92,11 @@ public class AccountManager {
                 if (acc != null) accounts.add(acc);
             }
         };
-
+        if(BankAccount.getInstance() == null) {
+            createAccountOfBank();
+        }
         storageManager.load(loader, accountsFilePath);
+
     }
 
 
@@ -175,8 +189,9 @@ public class AccountManager {
 
     public void createAccountOfBank(){
         String iban = generateIBAN();
-        BankAccount bank = new BankAccount(iban, 69696969, "Bank");
+        BankAccount bank = new BankAccount(iban, 69696969, "TUC");
         bank.matchBankAccount(bank);
+        accounts.add(bank);
     }
 
     public String generateIBAN(){
@@ -268,4 +283,40 @@ public class AccountManager {
         }
     }
 
+    public Map<Account, Double> applyRate(LocalDate currentDate, Map<Account, Double> monthlyRate, TransactionManager transactionManager){
+        BankAccount bankAccount = BankAccount.getInstance();
+        for(Account account : accounts) {
+            double dailyInterest = account.getBalance() * account.getRate()/365.0;
+            if(monthlyRate.containsKey(account)){
+                monthlyRate.put(account, monthlyRate.get(account) + dailyInterest);
+            }
+            else {
+                monthlyRate.put(account, dailyInterest);
+            }
+            if(currentDate.getDayOfMonth() == 30){
+                if(monthlyRate.get(account) > 0){
+                    TransferTransaction transferRate = new TransferTransaction(transactionManager);
+                    transferRate.execute(bankAccount, account, monthlyRate.get(account), "Monthly Rate");
+                    monthlyRate.put(account, 0.0);
+                }
+            }
+        }
+        return monthlyRate;
+    }
+
+    public void applyFee(LocalDate currentDate, TransactionManager transactionManager) {
+        BankAccount bankAccount = BankAccount.getInstance();
+
+        if(currentDate.getDayOfMonth() == 30){
+            for(Account account : accounts) {
+                if(account instanceof BusinessAccount){
+                    BusinessAccount businessAccount = (BusinessAccount) account;
+                    if(account.getBalance() >= businessAccount.getFee()){
+                        TransferTransaction transferFee = new TransferTransaction(transactionManager);
+                        transferFee.execute(account, bankAccount, businessAccount.getFee(), "Monthly Fee");
+                    }
+                }
+            }
+        }
+    }
 }

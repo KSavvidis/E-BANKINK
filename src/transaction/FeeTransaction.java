@@ -9,4 +9,5 @@ public class FeeTransaction implements Transaction {
     public void execute(Account account, Scanner sc) {
 
     }
+
 }

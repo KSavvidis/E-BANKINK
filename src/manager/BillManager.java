@@ -6,15 +6,13 @@ import storage.Storable;
 
 import java.io.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 public class BillManager {
-    private final List<Bill> bills = new ArrayList<>();
+
     private final FileStorageManager storageManager = new FileStorageManager();
     private final UserManager userManager = new UserManager();
-
     private final String billsFolderPath = "data/bills/";
     private final String issuedFilePath = billsFolderPath + "issued.csv";
     private final String expiredFilePath = billsFolderPath + "expired.csv";
@@ -36,18 +34,18 @@ public class BillManager {
         File billFile = new File(billsFolderPath + filename);
 
         if (!billFile.exists()) {
-            System.out.println("No bills found for " + date);
+            System.out.println("No bills found today.");
             return;
         }
 
-        List<String> billIssued = new ArrayList<>();
-        List<String> billExpired = new ArrayList<>();
+        Storable loader = new Storable() {
+            @Override
+            public String marshal() { return null; }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(billFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
+            @Override
+            public void unmarshal(String line) {
                 line = line.trim();
-                if (line.isEmpty()) continue;
+                if (line.isEmpty()) return;
 
                 try {
                     Bill bill = parseBill(line);
@@ -55,49 +53,35 @@ public class BillManager {
                         LocalDate dueDate = LocalDate.parse(bill.getDueDate());
                         if (dueDate.isBefore(date)) {
                             if (!isLineInFile(line, expiredFilePath)) {
-                                billExpired.add(line);
+                                appendToFile(expiredFilePath, Collections.singletonList(line));
                             }
                         } else {
                             if (!isLineInFile(line, issuedFilePath)) {
-                                billIssued.add(line);
+                                appendToFile(issuedFilePath, Collections.singletonList(line));
                             }
                         }
                     }
                 } catch (Exception e) {
                     System.err.println("Error processing line: " + line);
-                    System.err.println("Error details: " + e.getMessage());
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error reading bills file: " + e.getMessage());
-            return;
-        }
+        };
 
-        appendToFile(issuedFilePath, billIssued);
-        appendToFile(expiredFilePath, billExpired);
+        storageManager.load(loader, billsFolderPath + filename);
     }
 
     protected void simulateForExpiry(LocalDate currentDate) {
         List<String> activeBills = new ArrayList<>();
         List<String> expiredBills = new ArrayList<>();
 
-        // Create files if they don't exist
-        File issuedFile = new File(issuedFilePath);
-        if (!issuedFile.exists()) {
-            try {
-                issuedFile.createNewFile();
-                return;
-            } catch (IOException e) {
-                System.err.println("Error creating issued bills file: " + e.getMessage());
-                return;
-            }
-        }
+        Storable processor = new Storable() {
+            @Override
+            public String marshal() { return null; }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
+            @Override
+            public void unmarshal(String line) {
                 line = line.trim();
-                if (line.isEmpty()) continue;
+                if (line.isEmpty()) return;
 
                 try {
                     Bill bill = parseBill(line);
@@ -115,10 +99,9 @@ public class BillManager {
                     System.err.println("Error processing bill: " + line);
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error reading issued bills: " + e.getMessage());
-            return;
-        }
+        };
+
+        storageManager.load(processor, issuedFilePath);
 
         if (!expiredBills.isEmpty()) {
             appendToFile(expiredFilePath, expiredBills);
@@ -166,54 +149,60 @@ public class BillManager {
     }
 
     private boolean isLineInFile(String line, String filePath) {
-        File file = new File(filePath);
-        if (!file.exists()) return false;
+        final boolean[] found = {false};
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String currentLine;
-            while ((currentLine = reader.readLine()) != null) {
+        Storable checker = new Storable() {
+            @Override
+            public String marshal() { return null; }
+
+            @Override
+            public void unmarshal(String currentLine) {
                 if (currentLine.trim().equals(line.trim())) {
-                    return true;
+                    found[0] = true;
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error checking file: " + e.getMessage());
-        }
-        return false;
+        };
+
+        storageManager.load(checker, filePath);
+        return found[0];
     }
 
     private void appendToFile(String filePath, List<String> lines) {
         if (lines.isEmpty()) return;
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.err.println("Error writing to file: " + e.getMessage());
+        for (String line : lines) {
+            storageManager.save(new Storable() {
+                @Override
+                public String marshal() { return line; }
+
+                @Override
+                public void unmarshal(String data) {}
+            }, filePath, true);
         }
     }
 
     private void writeFile(String filePath, List<String> lines) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.err.println("Error writing file: " + e.getMessage());
+        try {
+            new java.io.PrintWriter(filePath).close(); // Clear file
+        } catch (Exception e) {
+            System.err.println("Error clearing file: " + e.getMessage());
         }
+
+        appendToFile(filePath, lines);
     }
+
 
     protected List<Bill> getBillsForCustomer(String vat) {
         List<Bill> result = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFilePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
+        Storable collector = new Storable() {
+            @Override
+            public String marshal() { return null; }
+
+            @Override
+            public void unmarshal(String line) {
                 line = line.trim();
-                if (line.isEmpty()) continue;
+                if (line.isEmpty()) return;
 
                 try {
                     Bill bill = parseBill(line);
@@ -224,18 +213,42 @@ public class BillManager {
                     System.err.println("Error processing line: " + line);
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error reading issued bills: " + e.getMessage());
-        }
+        };
 
+        storageManager.load(collector, issuedFilePath);
         return result;
     }
 
+    public List<Bill> findForRF(String rf){
+        List<Bill> result = new ArrayList<>();
+        Storable collector = new Storable() {
+            @Override
+            public String marshal() { return null; }
+
+            @Override
+            public void unmarshal(String line) {
+                line = line.trim();
+                if (line.isEmpty()) return;
+
+                try {
+
+                    Bill bill = parseBill(line);
+                    if (bill != null && bill.getPaymentCode().equals(rf)) {
+                        result.add(bill);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing line: " + line);
+                }
+            }
+        };
+        storageManager.load(collector, issuedFilePath);
+        return result;
+    }
     public void showBills(String vat, String filePath) {
-        File issuedFile = new File(filePath);
-        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFile))) {
-            if (!issuedFile.exists() || issuedFile.length() == 0) {
-                System.out.println("No issued bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
+        File issuedPaidFile = new File(filePath);
+        try (BufferedReader reader = new BufferedReader(new FileReader(issuedPaidFile))) {
+            if (!issuedPaidFile.exists() || issuedPaidFile.length() == 0) {
+                System.out.println("No issued/paid bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
                 return;
             }
             String line;
@@ -270,32 +283,36 @@ public class BillManager {
         System.out.println("\nLoad bills from file");
         System.out.println("===================================");
         System.out.print("Enter the full path of the file to load bills from: ");
-        String filePath = sc.next();
-        sc.nextLine();
-        File billFile = new File(filePath);
-        if (!billFile.exists()) {
-            System.out.println("File does not exist: " + filePath);
-            return;
-        }
+        String filePath = sc.nextLine().trim();  // Αλλαγή από next() σε nextLine()
 
         List<String> billsToAdd = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(billFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                Bill bill = parseBill(line);
-                if (bill != null && bill.getIssuer().getVAT().equals(vat)) {
-                    String billLine = bill.marshal();
-                    if (!isLineInFile(billLine, issuedFilePath) &&
-                            !isLineInFile(billLine, expiredFilePath)) {
-                        billsToAdd.add(billLine);
+        Storable loader = new Storable() {
+            @Override
+            public String marshal() { return null; }
+
+            @Override
+            public void unmarshal(String line) {
+                line = line.trim();
+                if (line.isEmpty()) return;
+
+                try {
+                    Bill bill = parseBill(line);
+                    if (bill != null && bill.getIssuer().getVAT().equals(vat)) {
+                        String billLine = bill.marshal();
+                        if (!isLineInFile(billLine, issuedFilePath) &&
+                                !isLineInFile(billLine, expiredFilePath)) {
+                            billsToAdd.add(billLine);
+                        }
                     }
+                } catch (Exception e) {
+                    System.out.println("Error processing line: " + line);
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Error reading file: " + e.getMessage());
-            return;
-        }
+        };
+
+        // Χρήση FileStorageManager για φόρτωση
+        storageManager.load(loader, filePath);
 
         if (billsToAdd.isEmpty()) {
             System.out.println("No new bills found for your company in this file.");
@@ -322,28 +339,19 @@ public class BillManager {
     public void loadBillsFromIssuedToPaidFile(String rf) {
         List<String> nonPaidBills = new ArrayList<>();
         List<String> paidBills = new ArrayList<>();
+        System.out.println("****");
+        Storable processor = new Storable() {
+            @Override
+            public String marshal() { return null; }
 
-        File issuedFile = new File(issuedFilePath);
-        if (!issuedFile.exists()) {
-            try {
-                issuedFile.createNewFile();
-                return;
-            } catch (IOException e) {
-                System.err.println("Error creating issued bills file: " + e.getMessage());
-                return;
-            }
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(issuedFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
+            @Override
+            public void unmarshal(String line) {
                 line = line.trim();
-                if (line.isEmpty()) continue;
+                if (line.isEmpty()) return;
 
                 try {
                     Bill bill = parseBill(line);
                     if (bill != null) {
-
                         if (rf.equals(bill.getPaymentCode())) {
                             if (!isLineInFile(line, paidFilePath)) {
                                 paidBills.add(line);
@@ -356,15 +364,14 @@ public class BillManager {
                     System.err.println("Error processing bill: " + line);
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error reading issued bills: " + e.getMessage());
-            return;
-        }
+        };
+
+        // Φόρτωση με FileStorageManager
+        storageManager.load(processor, issuedFilePath);
 
         if (!paidBills.isEmpty()) {
             appendToFile(paidFilePath, paidBills);
             writeFile(issuedFilePath, nonPaidBills);
         }
-
     }
 }

@@ -6,12 +6,13 @@ import storage.FileStorageManager;
 import model.Bill;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.util.*;
 
 public class TransactionManager {
     private  AccountManager accountManager;
     private  BillManager billManager;
-
+    private final StatementManager statementManager = new StatementManager();
     private final FileStorageManager storageManager = new FileStorageManager();
     private final String accountsFilePath = "data/accounts/accounts.csv";
 
@@ -42,7 +43,7 @@ public class TransactionManager {
         account.setBalance(account.getBalance() + amount);
         updateAccountInFile(account);
 
-        recordTransaction(account, "ATM Deposit", amount);
+        statementManager.recordTransaction(account, "ATM Deposit", amount);
 
         System.out.printf("Deposited %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
@@ -66,7 +67,7 @@ public class TransactionManager {
         account.setBalance(account.getBalance() - amount);
         updateAccountInFile(account);
 
-        recordTransaction(account, "ATM Withdraw", amount);
+        statementManager.recordTransaction(account, "ATM Withdraw", amount);
 
         System.out.printf("Withdrew %.2f successfully. New balance: %.2f\n", amount, account.getBalance());
     }
@@ -117,8 +118,8 @@ public class TransactionManager {
         updateAccountInFile(senderAccount);
         updateAccountInFile(recipient);
 
-        recordTransaction(senderAccount, "Transfer to " + recipientIban + " - " + reason, -amount);
-        recordTransaction(recipient, "Transfer from " + senderAccount.getIban() + " - " + reason, amount);
+        statementManager.recordTransaction(senderAccount,  "Transfer to " + recipientIban + " - " + reason, -amount);
+        statementManager.recordTransaction(recipient, "Transfer from " + senderAccount.getIban() + " - " + reason, amount);
 
         System.out.printf("Transferred %.2f successfully to %s.\n", amount, recipientIban);
         System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
@@ -146,15 +147,66 @@ public class TransactionManager {
         updateAccountInFile(senderAccount);
         updateAccountInFile(receiverAccount);
 
-        recordTransaction(senderAccount, "Transfer to " + receiverAccount.getIban() + " - " + description, -amount);
-        recordTransaction(receiverAccount, "Transfer from " + senderAccount.getIban() + " - " + description, amount);
+        statementManager.recordTransaction(senderAccount, "Transfer to " + receiverAccount.getIban() + " - " + description, -amount);
+        statementManager.recordTransaction(receiverAccount, "Transfer from " + senderAccount.getIban() + " - " + description, amount);
 
         System.out.printf("Transferred %.2f successfully to %s.\n", amount, receiverAccount.getIban());
         System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
     }
 
-    public void performPayment(String iban, String vat, Scanner sc) {
+    public boolean performOrderTransfers(Account senderAccount, Account receiverAccount, double amount, String description) {
+        if (senderAccount == null) {
+            System.out.println("Sender account not found.");
+            return false;
+        }
 
+        if (receiverAccount == null) {
+            System.out.println("Recipient account not found.");
+            return false;
+        }
+
+        if (senderAccount.getIban().equals(receiverAccount.getIban())) {
+            System.out.println("Cannot transfer to the same account.");
+            return false;
+        }
+
+        if(senderAccount.getBalance() < amount) {
+            System.out.println("Insufficient balance.");
+            return false;
+        }
+        senderAccount.setBalance(senderAccount.getBalance() - amount);
+        receiverAccount.setBalance(receiverAccount.getBalance() + amount);
+
+        updateAccountInFile(senderAccount);
+        updateAccountInFile(receiverAccount);
+
+        statementManager.recordTransaction(senderAccount, "Transfer to " + receiverAccount.getIban() + " - " + description, -amount);
+        statementManager.recordTransaction(receiverAccount, "Transfer from " + senderAccount.getIban() + " - " + description, amount);
+
+        System.out.printf("Transferred %.2f successfully to %s.\n", amount, receiverAccount.getIban());
+        System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
+        return true;
+    }
+
+    public boolean performOrderPayment(Account chargeAccount, Bill bill) {
+
+        if (chargeAccount.getBalance() < bill.getAmount()) {
+            System.out.println("Insufficient funds in the selected account.");
+            return false;
+        }
+
+        chargeAccount.setBalance(chargeAccount.getBalance() - bill.getAmount());
+        System.out.printf("Payment of %.2f for bill %s completed. Updated account balance: %.2f\n",
+                bill.getAmount(), bill.getPaymentCode(), chargeAccount.getBalance());
+
+        billManager.loadBillsFromIssuedToPaidFile(bill.getPaymentCode());
+        updateAccountInFile(chargeAccount);
+
+        statementManager.recordTransaction(chargeAccount, "Bill Payment", -bill.getAmount());
+        return true;
+    }
+
+    public void performPayment(String iban, String vat, Scanner sc) {
         List<Bill> pendingBills = billManager.getBillsForCustomer(vat);
 
         if (pendingBills.isEmpty()) {
@@ -201,7 +253,7 @@ public class TransactionManager {
         billManager.loadBillsFromIssuedToPaidFile(rf);
         updateAccountInFile(selectedAccount);
 
-        recordTransaction(selectedAccount, "Bill Payment", -selectedBill.getAmount());
+        statementManager.recordTransaction(selectedAccount, "Bill Payment", -selectedBill.getAmount());
     }
 
     public void performOrderTransferFee(Account senderAccount, double amount, String description) {
@@ -219,8 +271,8 @@ public class TransactionManager {
         bankAccount.setBalance(bankAccount.getBalance() + amount);
         updateAccountInFile(senderAccount);
         updateAccountInFile(bankAccount);
-        recordTransaction(senderAccount, "Transfered fee to Bank: " + amount, -amount);
-        recordTransaction(bankAccount, "Transfered fee from " + senderAccount.getIban() + " - " + description, + amount);
+        statementManager.recordTransaction(senderAccount, "Transferred fee to Bank: " + amount, -amount);
+        statementManager.recordTransaction(bankAccount, "Transferred fee from " + senderAccount.getIban() + " - " + description, + amount);
         System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
     }
 
@@ -251,22 +303,6 @@ public class TransactionManager {
             }
         } catch (IOException e) {
             System.out.println("Error writing file: " + e.getMessage());
-        }
-    }
-
-    private void recordTransaction(Account account, String type, double amount) {
-        String transactionRecord = String.format("%s,%s,%.2f,%.2f\n",
-                java.time.LocalDate.now(),
-                type,                     //typos synalagis
-                amount,
-                account.getBalance()
-        );
-
-        String statementPath = "data/statements/" + account.getIban() + ".csv";
-        try (FileWriter fw = new FileWriter(statementPath, true)) {
-            fw.write(transactionRecord);
-        } catch (IOException e) {
-            System.out.println("Error recording transaction: " + e.getMessage());
         }
     }
 }

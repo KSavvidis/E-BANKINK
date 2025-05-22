@@ -1,6 +1,7 @@
 package model;
 
 import manager.AccountManager;
+import manager.BillManager;
 import manager.TimeSimulator;
 import transaction.Transaction;
 
@@ -17,18 +18,24 @@ public class PaymentOrder extends StandingOrder {
         this.paymentCode = paymentCode;
     }
 
-    @Override
-    public boolean validBalance() {
-        return false;
+    public String getPaymentCode() {
+        return paymentCode;
     }
 
-    @Override
-    public boolean executeOn(LocalDate date) {
+    public boolean isDue(LocalDate currentDate) {
+        if(currentDate.isEqual(getStartDate()) || currentDate.isAfter(getStartDate()))
+            if(currentDate.isBefore(getEndDate()) || currentDate.isEqual(getEndDate()))
+                return true;
         return false;
     }
-
     @Override
     public boolean execute() {
+        BillManager billManager = new BillManager();
+        List<Bill> bills = billManager.findForRF(paymentCode);
+
+        for (Bill bill : bills) {
+
+        }
         return false;
     }
 
@@ -36,4 +43,5 @@ public class PaymentOrder extends StandingOrder {
     public LocalDate getNextExecutionDate(LocalDate currentDate) {
         return null;
     }
+
 }

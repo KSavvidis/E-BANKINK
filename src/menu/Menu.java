@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 import model.Account;
+import model.BankAccount;
 import model.User;
 import transaction.*;
 
@@ -19,7 +20,6 @@ public class Menu {
         AccountManager accountManager = new AccountManager();
         StatementManager statementsManager = new StatementManager();
         statementsManager.initializeStatementFiles(accountManager.getAllAccounts());
-        accountManager.createAccountOfBank();
         // Load data from storage
         userManager.loadUsers();
         System.out.println("All users loaded.");
@@ -275,12 +275,18 @@ public class Menu {
     private void simulateTimePassing(Scanner sc, TimeSimulator timeSimulator) {
         System.out.println("\nTime Simulation");
         System.out.println("===================================");
+        System.out.println("Current system date: " + timeSimulator.getCurrentDate());
         System.out.println("Enter the target date (YYYY-MM-DD) to simulate until:");
         String dateInput = sc.next();
         sc.nextLine();
         try {
             LocalDate targetDate = LocalDate.parse(dateInput);
-            timeSimulator.run(targetDate);
+            try {
+                timeSimulator.run(targetDate);
+            }
+            catch (Exception e) {
+                System.out.println("Simulation Error: " + e.getMessage());
+            }
         }
         catch (Exception e) {
             System.out.println("Invalid date format. Please use YYYY-MM-DD format.");

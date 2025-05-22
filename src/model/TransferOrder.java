@@ -11,15 +11,39 @@ public class TransferOrder extends StandingOrder {
     private int frequencyInMonths;
     private int dayOfMonth;
 
-    public TransferOrder(String type, String orderID, String title, String description, Customer customer, LocalDate startDate, LocalDate endDate, Double fee, Account chargeAccount, double amount, Account creditAccount, int frequencyInMonths, int dayOfMonth) {
+    public TransferOrder(String type, String orderID, String title, String description, Customer customer, LocalDate startDate, LocalDate endDate, double fee, Account chargeAccount, double amount, Account creditAccount, int frequencyInMonths, int dayOfMonth) {
         super(type, orderID, title, description, customer, startDate, endDate, fee, chargeAccount);
         this.amount = amount;
         this.creditAccount = creditAccount;
         this.frequencyInMonths = frequencyInMonths;
         this.dayOfMonth = dayOfMonth;
     }
+    public int getDayOfMonth() {
+        return dayOfMonth;
+    }
 
-    public boolean canBeExecuted() {
+    public double getAmount() {
+        return amount;
+    }
+
+    public Account getCreditAccount() {
+        return creditAccount;
+    }
+    public int getFrequencyInMonths(){
+        return frequencyInMonths;
+    }
+    @Override
+    public boolean execute() {
+        return false;
+    }
+
+    @Override
+    public LocalDate getNextExecutionDate(LocalDate currentDate) {
+        return null;
+    }
+
+
+   /* public boolean canBeExecuted() {
         TimeSimulator timeSimulator = new TimeSimulator();
         LocalDate currentDate = timeSimulator.getCurrentDate();
         return validBalance() && isActiveOn(currentDate) && frequencyOfMonthCharged(currentDate) && !failedTooManyAttempts();
@@ -29,7 +53,7 @@ public class TransferOrder extends StandingOrder {
         int monthsBetween = currentDate.getMonthValue() - getStartDate().getMonthValue();
         return monthsBetween % frequencyInMonths == 0;
     }
-    @Override
+
     public boolean executeOn(LocalDate date) {
         if(!isActiveOn(date)) {
             return false;
@@ -51,7 +75,7 @@ public class TransferOrder extends StandingOrder {
         return false;
     }
 
-    @Override
+
     public boolean validBalance() {
         if(getChargeAccount().getBalance() >= amount + (getFee()/100) * amount) {
             return true;
@@ -69,5 +93,5 @@ public class TransferOrder extends StandingOrder {
 
         }
         return next;
-    }
+    }*/
 }
