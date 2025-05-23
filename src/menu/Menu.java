@@ -260,7 +260,7 @@ public class Menu {
                         showCompanyBillsMenu(sc);
                         break;
                     case 4:
-                        //standingOrderManager.ListStandingOrders();
+                        standingOrderManager.listStandingOrders(sc);
                         break;
                     case 5:
                         //na to doume mhpws ginei methodos
@@ -362,7 +362,8 @@ public class Menu {
 
     private void showCustomerMenu(Scanner sc){
         UserManager userManager = new UserManager();
-        while(true) {
+        boolean exit = false;
+        while(!exit) {
             System.out.println("Customer Menu");
             System.out.println("===================================");
             System.out.println("1. List Customers");
@@ -381,7 +382,8 @@ public class Menu {
                         userManager.showCustomerInfo(sc);
                         break;
                     case 3:
-                        return;
+                        exit = true;
+                        break;
                     default:
                         System.out.println("Invalid choice. Try again.");
                 }

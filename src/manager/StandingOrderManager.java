@@ -48,7 +48,7 @@ public class StandingOrderManager {
                         case "TransferOrder":
                             standingOrder = new TransferOrder(
                                     map.get("type"),
-                                    map.get("orderID"),
+                                    map.get("orderId"),
                                     map.get("title"),
                                     map.get("description"),
                                     userManager.findCustomerByVAT(map.get("customer")),
@@ -115,9 +115,7 @@ public class StandingOrderManager {
                     if(((PaymentOrder) standingOrder).getMaxAmount()<bill.getAmount())
                         continue;
                     if(!transactionManager.performOrderPayment(standingOrder.getChargeAccount()
-                            , bill
-                            , standingOrder.getFee()
-                            , standingOrder.getDescription())){
+                            , bill, currentDate)){
                         FailedOrder failed = new FailedOrder(standingOrder);
                         failed.increaseCurrentTry();
                         failedOrders.add(failed);
@@ -144,9 +142,7 @@ public class StandingOrderManager {
                 if(failedOrder.getLastAttemptDate().equals(currentDate))
                     continue;
                 if(!transactionManager.performOrderPayment(paymentOrder.getChargeAccount()
-                        , bill
-                        , paymentOrder.getFee()
-                        , paymentOrder.getDescription())){
+                        , bill, currentDate)){
                     failedOrder.increaseCurrentTry();
                     failedOrder.setLastAttemptDate(currentDate);
                 }
@@ -167,14 +163,21 @@ public class StandingOrderManager {
                 continue;
 
             if(!failedOrder.getLastAttemptDate().equals(currentDate)) {
-                if (!transactionManager.performOrderTransfers(transferOrder.getChargeAccount()
-                        , transferOrder.getCreditAccount()
-                        , transferOrder.getAmount() + transferOrder.getFee()
-                        , transferOrder.getDescription())) {
+                if(transferOrder.getChargeAccount().getBalance() >= transferOrder.getAmount() + transferOrder.getFee()) {
+                    if (!transactionManager.performOrderTransfers(transferOrder.getChargeAccount()
+                            , transferOrder.getCreditAccount()
+                            , transferOrder.getAmount()
+                            , transferOrder.getDescription()
+                            , currentDate)) {
+                        failedOrder.increaseCurrentTry();
+                        failedOrder.setLastAttemptDate(currentDate);
+                    } else {
+                        failedOrders.remove(failedOrder);
+                    }
+                }
+                else{
                     failedOrder.increaseCurrentTry();
                     failedOrder.setLastAttemptDate(currentDate);
-                } else {
-                    failedOrders.remove(failedOrder);
                 }
             }
         }
@@ -191,14 +194,21 @@ public class StandingOrderManager {
                 if(currentDate.getDayOfMonth() == ((TransferOrder) standingOrder).getDayOfMonth()){
                     if(((currentDate.getMonthValue() - (standingOrder).getStartDate().getMonthValue()) %
                             ((TransferOrder) standingOrder).getFrequencyInMonths()) == 0){
-                       if(!transactionManager.performOrderTransfers(standingOrder.getChargeAccount()
-                                                                , transferOrder.getCreditAccount()
-                                                                , transferOrder.getAmount() + transferOrder.getFee()
-                                                                , standingOrder.getDescription())){
-                           FailedOrder failed = new FailedOrder(standingOrder);
-                           failed.increaseCurrentTry();
-                           failedOrders.add(failed);
-                           failed.setLastAttemptDate(currentDate);
+                        FailedOrder failed = new FailedOrder(standingOrder);
+                        if(transferOrder.getChargeAccount().getBalance() >= transferOrder.getAmount() + transferOrder.getFee()) {
+                            if (!transactionManager.performOrderTransfers(standingOrder.getChargeAccount()
+                                    , transferOrder.getCreditAccount()
+                                    , transferOrder.getAmount()
+                                    , standingOrder.getDescription()
+                                    , currentDate)) {
+                                failed.increaseCurrentTry();
+                                failedOrders.add(failed);
+                                failed.setLastAttemptDate(currentDate);
+                            }
+                        }
+                        else{
+                            failed.setLastAttemptDate(currentDate);
+                            failed.increaseCurrentTry();
                         }
                     }
                 }
@@ -215,7 +225,6 @@ public class StandingOrderManager {
             }
         }
     }
-
     public void listStandingOrders(Scanner sc) {
         if (standingOrders.isEmpty()) {
             System.out.println("No standing orders found.");

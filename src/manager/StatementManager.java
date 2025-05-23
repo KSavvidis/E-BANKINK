@@ -1,6 +1,8 @@
 package manager;
 
 import model.Account;
+import model.FailedOrder;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,7 +12,7 @@ import java.util.List;
 
 public class StatementManager {
 
-
+private final String failedOrdersFilePath = "data/orders/failed.csv";
 
     public void initializeStatementFiles(List<Account> accounts) {
         File folder = new File("data/statements");
@@ -34,10 +36,10 @@ public class StatementManager {
         }
     }
 
-    public void recordTransaction(Account account, String type, double amount) {
+    public void recordTransaction(Account account, String type, double amount, LocalDate currentDate) {
         //na baloume to currentDate san parametro kai nallajoume oles tis transaction manager
         String transactionRecord = String.format("%s,%s,%.2f,%.2f\n",
-                LocalDate.now(),
+                currentDate,
                 type,
                 amount,
                 account.getBalance()
@@ -59,6 +61,14 @@ public class StatementManager {
             }
         } catch (IOException e) {
             System.out.println("Error recording transaction: " + e.getMessage());
+        }
+    }
+
+    public void failedOrderFolder(FailedOrder failedOrder, LocalDate currentDate) {
+        try(FileWriter writer = new FileWriter(failedOrdersFilePath, true)){
+        }
+        catch (Exception e){
+            System.out.println("Error writing to file: " + e.getMessage());
         }
     }
 }

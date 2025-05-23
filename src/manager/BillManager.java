@@ -64,11 +64,11 @@ public class BillManager {
                     if (bill != null) {
                         LocalDate dueDate = LocalDate.parse(bill.getDueDate());
                         if (dueDate.isBefore(date)) {
-                            if (!isLineInFile(line, expiredFilePath)) {
+                            if (!isLineInFile(line, expiredFilePath) && !isLineInFile(line, paidFilePath)) {
                                 appendToFile(expiredFilePath, Collections.singletonList(line));
                             }
                         } else {
-                            if (!isLineInFile(line, issuedFilePath)) {
+                            if (!isLineInFile(line, issuedFilePath) && !isLineInFile(line, paidFilePath)) {
                                 appendToFile(issuedFilePath, Collections.singletonList(line));
                             }
                         }
@@ -78,7 +78,6 @@ public class BillManager {
                 }
             }
         };
-        System.out.println("Loading bills for today.");
         storageManager.load(loader, billsFolderPath + filename);
     }
 

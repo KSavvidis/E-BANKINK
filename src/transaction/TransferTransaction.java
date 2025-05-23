@@ -3,6 +3,7 @@ package transaction;
 import manager.TransactionManager;
 import model.Account;
 
+import java.time.LocalDate;
 import java.util.Scanner;
 
 public class TransferTransaction implements Transaction {
@@ -17,7 +18,7 @@ public class TransferTransaction implements Transaction {
         transactionManager.performTransfer(account, sc);
     }
 
-    public void execute(Account sender, Account receiver, double amount, String reason) {
-        transactionManager.performOrderTransfer(sender, receiver, amount, reason);
+    public void execute(Account sender, Account receiver, double amount, String reason, LocalDate currentDate) {
+        transactionManager.performOrderTransfer(sender, receiver, amount, reason, currentDate);
     }
 }

@@ -256,7 +256,7 @@ public class AccountManager {
             if(currentDate.getDayOfMonth() == currentDate.lengthOfMonth()) {
                 if(monthlyRate.get(account) > 0){
                     TransferTransaction transferRate = new TransferTransaction(transactionManager);
-                    transferRate.execute(bankAccount, account, monthlyRate.get(account), "Monthly Rate");
+                    transferRate.execute(bankAccount, account, monthlyRate.get(account), "Monthly Rate", currentDate);
                     monthlyRate.put(account, 0.0);
                 }
             }
@@ -273,7 +273,7 @@ public class AccountManager {
                     BusinessAccount businessAccount = (BusinessAccount) account;
                     if(account.getBalance() >= businessAccount.getFee()){
                         TransferTransaction transferFee = new TransferTransaction(transactionManager);
-                        transferFee.execute(account, bankAccount, businessAccount.getFee(), "Monthly Fee");
+                        transferFee.execute(account, bankAccount, businessAccount.getFee(), "Monthly Fee", currentDate);
                     }
                 }
             }
