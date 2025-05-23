@@ -263,6 +263,7 @@ public class BillManager {
                 System.out.println("No issued/paid bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
                 return;
             }
+            boolean foundBills = false;
             String line;
             int i = 0;
             while ((line = reader.readLine()) != null) {
@@ -279,14 +280,15 @@ public class BillManager {
                             System.out.println("\nPaid Bills:");
                             System.out.println("======================================================");
                         }
+                        foundBills = true;
                     }
                     i++;
                     System.out.println(billLine);
                 }
-                else{
-                    System.out.println("No issued/paid bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
-                }
 
+            }
+            if(!foundBills){
+                System.out.println("No issued/paid bills found for company: " + userManager.findCustomerByVAT(vat).getLegalName());
             }
         } catch (IOException e) {
             System.err.println("Error reading bills: " + e.getMessage());

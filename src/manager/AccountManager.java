@@ -134,6 +134,7 @@ public class AccountManager {
 
         System.out.printf("Enter account number (1-%d): ", allAccounts.size());
         if(!sc.hasNextInt()) {
+            sc.nextLine();
             System.out.println("Invalid input. Try again.");
             return null;
         }

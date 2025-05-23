@@ -164,7 +164,7 @@ public class Menu {
     private void showTransactionsMenu(User user, Scanner sc) {
         AccountManager accountManager = new AccountManager();
         BillManager billManager = new BillManager();
-        TransactionManager transactionManager = new TransactionManager(accountManager,billManager);
+        TransactionManager transactionManager = new TransactionManager(accountManager, billManager);
         boolean exit = false;
         if (!accountManager.hasAccounts(user.getVAT())) {
             System.out.println("You don't have any accounts to perform transactions on.");
@@ -182,16 +182,14 @@ public class Menu {
             System.out.println("4. Payment");
             System.out.println("5. Back to Individual Menu");
             System.out.print("Enter your choice: ");
-            if(!sc.hasNextInt()) {
+            if (!sc.hasNextInt()) {
+                sc.nextLine();
                 System.out.println("Invalid choice, please try again.");
                 continue;
             }
             int choice = sc.nextInt();
             sc.nextLine();
-            Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
-            if (selectedAccount == null) {
-                continue;
-            }
+
             Transaction transaction = null;
             switch (choice) {
                 case 1:
@@ -216,10 +214,15 @@ public class Menu {
                 default:
                     System.out.println("Invalid choice. Try again.");
                     continue;
-            }
-
-            if (transaction != null) {
-                transaction.execute(selectedAccount, sc);
+                    }
+            if(transaction != null) {
+                Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
+                if (selectedAccount == null) {
+                    continue;
+                }
+                if (transaction != null) {
+                    transaction.execute(selectedAccount, sc);
+                }
             }
         }
     }
@@ -269,7 +272,7 @@ public class Menu {
                         Customer customer;
 
                         while (true) {
-                            System.out.print("Please enter the company's VAT you want to view: ");
+                            System.out.print("Please enter the customer's VAT you want to pay bills: ");
                             VAT = sc.next();
                             sc.nextLine();
                             if (VAT.isEmpty()) {
@@ -279,7 +282,7 @@ public class Menu {
 
                             customer = userManager.findCustomerByVAT(VAT);
                             if (customer == null) {
-                                System.out.println("No company found with this VAT. Please try again.");
+                                System.out.println("No customer found with this VAT. Please try again.");
                                 continue;
                             }
 
@@ -343,6 +346,7 @@ public class Menu {
             int choice;
             if (sc.hasNextInt()) {
                 choice = sc.nextInt();
+                sc.nextLine();
                 switch (choice) {
                     case 1:
                         showOverviewMenu(user, sc);
@@ -390,6 +394,7 @@ public class Menu {
             }
             else {
                 System.out.println("Please enter a valid choice. Try again.");
+                sc.nextLine();
             }
         }
     }
@@ -424,7 +429,10 @@ public class Menu {
 
                 }
             }
-
+            else{
+                System.out.println("Please enter a valid choice. Try again.");
+                sc.nextLine();
+            }
         }
     }
 
@@ -435,24 +443,22 @@ public class Menu {
 
         System.out.println("\nCompany bills menu");
         System.out.println("===================================");
-// na to fftiajoume pio wraia
-        String VAT = "";
-        while (VAT.isEmpty()) {
-            System.out.print("Please enter the company's VAT you want to view: ");
-            VAT = sc.next();
-            sc.nextLine();
-            if (VAT.isEmpty()) {
-                System.out.println("VAT cannot be empty. Please try again.");
-            }
 
-            if (userManager.findCustomerByVAT(VAT) == null) {
+        boolean found = false;
+        String companyVAT = "";
+        while(!found) {
+            System.out.println("Please enter the company's VAT you want to view:");
+            companyVAT = sc.next();
+            sc.nextLine();
+            if (userManager.findCustomerByVAT(companyVAT) == null) {
                 System.out.println("No company found with this VAT. Please try again.");
-                VAT = "";
+                continue;
             }
+            found = true;
         }
         boolean exit = false;
         while(!exit) {
-            System.out.println("Company bills Menu");
+            System.out.println(userManager.findCustomerByVAT(companyVAT).getLegalName() + "'s bills Menu");
             System.out.println("===================================");
             System.out.println("1. Show Issued Bills");
             System.out.println("2. Show Paid Bills");
@@ -466,24 +472,24 @@ public class Menu {
                 sc.nextLine();
                 switch (choice) {
                     case 1:
-                        billManager.showBills(VAT, billManager.getIssuedFilePath());
+                        billManager.showBills(companyVAT, billManager.getIssuedFilePath());
                         break;
                     case 2:
-                        billManager.showBills(VAT, billManager.getPaidFilePath());
+                        billManager.showBills(companyVAT, billManager.getPaidFilePath());
                         break;
                     case 3:
-                        billManager.manualLoadBillsFromFile(sc,VAT);
+                        billManager.manualLoadBillsFromFile(sc,companyVAT);
                         break;
                     case 4:
                         exit = true;
                     default:
                         System.out.println("Invalid choice. Try again.");
-
-
                 }
             }
-
-
+            else{
+                System.out.println("Please enter a valid choice. Try again.");
+                sc.nextLine();
+            }
         }
     }
 
@@ -517,6 +523,10 @@ public class Menu {
                     default:
                         System.out.println("Please enter a valid choice. Try again.");
                 }
+            }
+            else{
+                System.out.println("Please enter a valid choice. Try again.");
+                sc.nextLine();
             }
         }
     }

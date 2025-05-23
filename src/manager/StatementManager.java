@@ -71,4 +71,20 @@ private final String failedOrdersFilePath = "data/orders/failed.csv";
             System.out.println("Error writing to file: " + e.getMessage());
         }
     }
+
+    private void writeToFailedFile(String content){
+        try{
+            File file = new File(failedOrdersFilePath);
+            if (!file.exists()) {
+                System.out.println("Error creating file: " + failedOrdersFilePath);
+                return;
+            }
+            try(FileWriter writer = new FileWriter(file, true)){
+                writer.write(content + "/n");
+            }
+        }
+        catch (Exception e){
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+    }
 }

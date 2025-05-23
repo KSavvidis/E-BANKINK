@@ -29,6 +29,11 @@ public class TransactionManager {
         }
 
         System.out.print("Enter amount to deposit: ");
+        if(!sc.hasNextDouble()) {
+            sc.nextLine();
+            System.out.println("Please enter a valid amount. Try again.");
+            return;
+        }
         double amount = sc.nextDouble();
         sc.nextLine(); // Consume newline
 
@@ -53,6 +58,11 @@ public class TransactionManager {
         }
 
         System.out.print("Enter amount to withdraw: ");
+        if(!sc.hasNextDouble()) {
+            sc.nextLine();
+            System.out.println("Invalid input. Please try again.");
+            return;
+        }
         double amount = sc.nextDouble();
         sc.nextLine(); // Consume newline
 

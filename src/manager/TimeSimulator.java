@@ -39,6 +39,7 @@ public class TimeSimulator{
     private void dailyWork(LocalDate currentDate){
         System.out.println("Today's date: " + currentDate.toString());
         TransactionManager transactionManager = new TransactionManager(accountManager, billManager);
+        standingOrderManager.moveExpiredOrders(currentDate);
         this. monthlyRate = accountManager.applyRate(currentDate,monthlyRate, transactionManager);
         accountManager.applyFee(currentDate, transactionManager);
         billManager.loadBillsForDate(currentDate);

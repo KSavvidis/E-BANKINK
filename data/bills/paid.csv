@@ -4,4 +4,6 @@ type:Bill,paymentCode:RF10203050,billNumber:NV20250425002,issuer:090800600,custo
 type:Bill,paymentCode:RF10203040,billNumber:CO20250501001,issuer:090800800,customer:067688302,amount:29.46,issueDate:2025-05-01,dueDate:2025-06-21
 type:Bill,paymentCode:RF10203041,billNumber:CO20250501002,issuer:090800800,customer:067688303,amount:37.45,issueDate:2025-05-01,dueDate:2025-06-21
 type:Bill,paymentCode:RF10203043,billNumber:CO20250501004,issuer:090800800,customer:067688307,amount:35.99,issueDate:2025-05-01,dueDate:2025-06-21
+type:Bill,paymentCode:RF10203048,billNumber:VF20250415004,issuer:090800700,customer:067688307,amount:35,issueDate:2025-05-05,dueDate:2025-06-25
 type:Bill,paymentCode:RF10203050,billNumber:NV20250425002,issuer:090800600,customer:067688307,amount:37.8,issueDate:2025-06-01,dueDate:2025-10-09
+type:Bill,paymentCode:RF10203050,billNumber:NV20250425002,issuer:090800600,customer:067688307,amount:37.8,issueDate:2025-07-20,dueDate:2025-10-09

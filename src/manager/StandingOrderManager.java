@@ -249,4 +249,81 @@ public class StandingOrderManager {
         sc.nextLine();
         sc.nextLine();
     }
+
+    public void moveExpiredOrders(LocalDate currentDate) {
+        // Διαβάζουμε όλες τις γραμμές από το active.csv
+        List<String> activeLines = new ArrayList<>();
+        storageManager.load(new Storable() {
+            @Override
+            public String marshal() { return null; }
+
+            @Override
+            public void unmarshal(String data) {
+                activeLines.add(data);
+            }
+        }, standingOrdersFilePath);
+
+        List<String> expiredLines = new ArrayList<>();
+        List<String> newActiveLines = new ArrayList<>();
+
+        for (String line : activeLines) {
+            Map<String, String> map = new HashMap<>();
+            String[] parts = line.split(",");
+            for (String part : parts) {
+                String[] keyValuePair = part.split(":", 2);
+                if (keyValuePair.length == 2) {
+                    map.put(keyValuePair[0].trim(), keyValuePair[1].trim());
+                }
+            }
+            String endDateStr = map.get("endDate");
+            if (endDateStr != null) {
+                LocalDate endDate = LocalDate.parse(endDateStr);
+                if (currentDate.isAfter(endDate)) {
+                    expiredLines.add(line);
+                } else {
+                    newActiveLines.add(line);
+                }
+            } else {
+                newActiveLines.add(line);
+            }
+        }
+
+        // Γράφουμε τις μη ληγμένες γραμμές ξανά στο active.csv
+        writeFile(standingOrdersFilePath, newActiveLines);
+
+        // Προσθέτουμε τις ληγμένες στο expired.csv
+        String expiredFilePath = "data/orders/expired.csv";
+        appendToFile(expiredFilePath, expiredLines);
+
+        // Αφαιρούμε από τη λίστα standingOrders τα ληγμένα χωρίς lambdas
+        Iterator<StandingOrder> iterator = standingOrders.iterator();
+        while (iterator.hasNext()) {
+            StandingOrder order = iterator.next();
+            if (currentDate.isAfter(order.getEndDate())) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private void appendToFile(String filePath, List<String> lines) {
+        if (lines.isEmpty()) return;
+
+        for (String line : lines) {
+            storageManager.save(new Storable() {
+                @Override
+                public String marshal() { return line; }
+
+                @Override
+                public void unmarshal(String data) {}
+            }, filePath, true);
+        }
+    }   private void writeFile(String filePath, List<String> lines) {
+        try {
+            new java.io.PrintWriter(filePath).close(); // Clear file
+        } catch (Exception e) {
+            System.err.println("Error clearing file: " + e.getMessage());
+        }
+
+        appendToFile(filePath, lines);
+    }
 }
