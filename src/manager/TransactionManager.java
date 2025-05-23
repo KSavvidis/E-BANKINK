@@ -161,6 +161,7 @@ public class TransactionManager {
     }
 
     public boolean performOrderTransfers(Account senderAccount, Account receiverAccount, double amount, String description, LocalDate currentDate) {
+        System.out.println("mpike sto transfers");
         if (senderAccount == null) {
             System.out.println("Sender account not found.");
             return false;
@@ -195,6 +196,7 @@ public class TransactionManager {
     }
 
     public boolean performOrderPayment(Account chargeAccount, Bill bill, LocalDate currentDate) {
+        System.out.println("mpike payment");
         if (chargeAccount.getBalance() < bill.getAmount()) {
             System.out.println("The payment for bill: " + bill.getPaymentCode() + " failed due to insufficient balance.");
             return false;

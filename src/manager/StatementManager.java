@@ -64,12 +64,14 @@ private final String failedOrdersFilePath = "data/orders/failed.csv";
         }
     }
 
-    public void failedOrderFolder(FailedOrder failedOrder, LocalDate currentDate) {
-        try(FileWriter writer = new FileWriter(failedOrdersFilePath, true)){
-        }
-        catch (Exception e){
-            System.out.println("Error writing to file: " + e.getMessage());
-        }
+    public void failedOrderFolder(FailedOrder failedOrder, LocalDate currentDate, double amount) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(currentDate).append(" | ");
+        sb.append("From: ").append(failedOrder.getOrder().getChargeAccount().getIban()).append(" | ");
+        sb.append("Amount: ").append(amount).append(" | ");
+        sb.append("Reason: ").append(failedOrder.getOrder().getDescription());
+
+        writeToFailedFile(sb.toString());
     }
 
     private void writeToFailedFile(String content){

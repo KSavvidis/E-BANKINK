@@ -15,6 +15,7 @@ public class StandingOrderManager {
     private FileStorageManager storageManager;
     private List<StandingOrder> standingOrders = new ArrayList<>();
     private List<FailedOrder> failedOrders = new ArrayList<>();
+    private final StatementManager statementManager = new StatementManager();
     public StandingOrderManager() {
         storageManager = new FileStorageManager();
         loadStandingOrders();
@@ -136,6 +137,7 @@ public class StandingOrderManager {
                         failed.increaseCurrentTry();
                         failedOrders.add(failed);
                         failed.setLastAttemptDate(currentDate);
+                        statementManager.failedOrderFolder(failed, currentDate, bill.getAmount());
                     }
                 }
             }
@@ -161,6 +163,7 @@ public class StandingOrderManager {
                         , bill, currentDate)){
                     failedOrder.increaseCurrentTry();
                     failedOrder.setLastAttemptDate(currentDate);
+                    statementManager.failedOrderFolder(failedOrder, currentDate, bill.getAmount());
                 }
                 else{
                     failedOrders.remove(failedOrder);
@@ -179,7 +182,6 @@ public class StandingOrderManager {
                 continue;
 
             if(!failedOrder.getLastAttemptDate().equals(currentDate)) {
-                if(transferOrder.getChargeAccount().getBalance() >= transferOrder.getAmount() + transferOrder.getFee()) {
                     if (!transactionManager.performOrderTransfers(transferOrder.getChargeAccount()
                             , transferOrder.getCreditAccount()
                             , transferOrder.getAmount()
@@ -187,14 +189,10 @@ public class StandingOrderManager {
                             , currentDate)) {
                         failedOrder.increaseCurrentTry();
                         failedOrder.setLastAttemptDate(currentDate);
+                        statementManager.failedOrderFolder(failedOrder, currentDate, transferOrder.getAmount());
                     } else {
                         failedOrders.remove(failedOrder);
                     }
-                }
-                else{
-                    failedOrder.increaseCurrentTry();
-                    failedOrder.setLastAttemptDate(currentDate);
-                }
             }
         }
     }
@@ -211,7 +209,6 @@ public class StandingOrderManager {
                     if(((currentDate.getMonthValue() - (standingOrder).getStartDate().getMonthValue()) %
                             ((TransferOrder) standingOrder).getFrequencyInMonths()) == 0){
                         FailedOrder failed = new FailedOrder(standingOrder);
-                        if(transferOrder.getChargeAccount().getBalance() >= transferOrder.getAmount() + transferOrder.getFee()) {
                             if (!transactionManager.performOrderTransfers(standingOrder.getChargeAccount()
                                     , transferOrder.getCreditAccount()
                                     , transferOrder.getAmount()
@@ -220,12 +217,8 @@ public class StandingOrderManager {
                                 failed.increaseCurrentTry();
                                 failedOrders.add(failed);
                                 failed.setLastAttemptDate(currentDate);
+                                statementManager.failedOrderFolder(failed, currentDate, transferOrder.getAmount());
                             }
-                        }
-                        else{
-                            failed.setLastAttemptDate(currentDate);
-                            failed.increaseCurrentTry();
-                        }
                     }
                 }
             }
