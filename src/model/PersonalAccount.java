@@ -1,8 +1,6 @@
 package model;
 
-import manager.AccountManager;
 import manager.UserManager;
-
 import java.util.ArrayList;
 import java.util.List;
 

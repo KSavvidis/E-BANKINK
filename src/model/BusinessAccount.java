@@ -16,7 +16,6 @@ public class BusinessAccount extends Account {
 
     @Override
     public void unmarshal(String data) {
-        // keni giati ginetai sto accmanager
     }
 
     public double getFee(){

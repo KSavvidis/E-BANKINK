@@ -1,12 +1,6 @@
 package model;
 
-import manager.AccountManager;
-import manager.BillManager;
-import manager.TimeSimulator;
-import transaction.Transaction;
-
 import java.time.LocalDate;
-import java.util.List;
 
 public class PaymentOrder extends StandingOrder {
     private double maxAmount;
@@ -22,26 +16,7 @@ public class PaymentOrder extends StandingOrder {
         return paymentCode;
     }
 
-    public boolean isDue(LocalDate currentDate) {
-        if(currentDate.isEqual(getStartDate()) || currentDate.isAfter(getStartDate()))
-            if(currentDate.isBefore(getEndDate()) || currentDate.isEqual(getEndDate()))
-                return true;
-        return false;
+    public double getMaxAmount() {
+        return maxAmount;
     }
-    @Override
-    public boolean execute() {
-        BillManager billManager = new BillManager();
-        List<Bill> bills = billManager.findForRF(paymentCode);
-
-        for (Bill bill : bills) {
-
-        }
-        return false;
-    }
-
-    @Override
-    public LocalDate getNextExecutionDate(LocalDate currentDate) {
-        return null;
-    }
-
 }

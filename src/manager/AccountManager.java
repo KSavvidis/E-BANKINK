@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class AccountManager {
-    //lista gia apothikeusi twn account
     private final List<Account> accounts = new ArrayList<>();
     private final FileStorageManager storageManager = new FileStorageManager();
     private final String accountsFilePath = "data/accounts/accounts.csv";
@@ -20,10 +19,6 @@ public class AccountManager {
 
     public AccountManager() {
         loadAccounts();
-    }
-    public AccountManager(UserManager userManager) {
-        this.userManager = userManager;
-        loadAccounts();//fortwnei account kata tin arxikopoiisi
     }
 
     public void loadAccounts() {
@@ -77,14 +72,6 @@ public class AccountManager {
                                 Double.parseDouble(map.get("fee"))
                         );
                     }
-                  /*  else if (type.equals("BankAccount")) {
-                        acc = new BankAccount(
-                                map.get("iban"),
-                                Double.parseDouble(map.get("balance")),
-                                map.get("primaryOwner")
-                                );
-
-                    }*/
                 } catch (Exception e) {
                     System.out.println("Error parsing account: " + e.getMessage());
                 }
@@ -99,32 +86,16 @@ public class AccountManager {
 
     }
 
-
-    //apothikevei oloous tous logariasmous sto arxeio me xrisi tis save apo filestoragemanager
-    public void saveAccounts() {
-        try {
-            new java.io.PrintWriter(accountsFilePath).close(); // clear//ti einai auto re malaka
-        } catch (Exception e) {
-            System.out.println("Error clearing file: " + e.getMessage());
-        }
-
-        for (Account acc : accounts) {
-            storageManager.save(acc, accountsFilePath, true);
-        }
-    }
-
     public List<Account> getAllAccounts() {
        return accounts;
     }
 
-    //tha to xreiasteis esu gia tis alles duo methodous
     public Account findByIban(String iban) {
         for (Account acc : accounts) {
             if (acc.getIban().equals(iban)) return acc;
         }
         return null;
     }
-    //vriskei account me vasi vat alla to apothikevei se primaryowner kathws vat==primaryowner sto neo arxeio
     public List<Account> findByVat(String vat) {
             List<Account> userAccounts = new ArrayList<>();
             for (Account account : accounts) {
@@ -162,6 +133,10 @@ public class AccountManager {
         }
 
         System.out.printf("Enter account number (1-%d): ", allAccounts.size());
+        if(!sc.hasNextInt()) {
+            System.out.println("Invalid input. Try again.");
+            return null;
+        }
         int index = sc.nextInt();
         sc.nextLine();
 
@@ -171,20 +146,6 @@ public class AccountManager {
         }
 
         return allAccounts.get(index - 1);
-    }
-
-    public List<Account> findCoOwnedAccounts(String vat) {
-        List<Account> coOwnedAccounts = new ArrayList<>();
-
-        for (Account account : accounts) {
-            if (account instanceof PersonalAccount) {
-                // Έλεγχος αν ο χρήστης είναι co-owner
-                if (account.getCoOwner() != null && account.getCoOwner().contains(vat)) {
-                    coOwnedAccounts.add(account);
-                }
-            }
-        }
-        return coOwnedAccounts;
     }
 
     public void createAccountOfBank(){
@@ -265,7 +226,6 @@ public class AccountManager {
                 String line;
 
                 while((line = br.readLine()) != null) {
-                    //auto den diavazei tis kenes grammes den jerw an prepei na to baloume h oxi  if(!line.trim().isEmpty()) {
                     System.out.println(line);
                 }
             }

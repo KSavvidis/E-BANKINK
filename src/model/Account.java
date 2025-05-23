@@ -7,8 +7,8 @@ import java.util.List;
 public abstract class Account implements Storable {
     protected String iban;
     protected Customer primaryOwner;
-    protected List<Customer> coOwner; //List<User>
-    protected String dateCreated; // mporei LocalDate
+    protected List<Customer> coOwner;
+    protected String dateCreated;
     protected double rate;
     protected double balance;
 
@@ -38,32 +38,17 @@ public abstract class Account implements Storable {
         return iban;
     }
 
-    public void setIban(String iban) {
-        this.iban = iban;
-    }
 
     public Customer getPrimaryOwner() {
         return primaryOwner;
-    }
-
-    public void setPrimaryOwner(Customer primaryOwner) {
-        this.primaryOwner = primaryOwner;
     }
 
     public List<Customer> getCoOwner() {
         return coOwner;
     }
 
-    public void setCoOwner(List<Customer> coOwner) {
-        this.coOwner = coOwner;
-    }
-
     public String getDateCreated() {
         return dateCreated;
-    }
-
-    public void setDateCreated(String dateCreated) {
-        this.dateCreated = dateCreated;
     }
 
     public double getRate() {
@@ -88,7 +73,5 @@ public abstract class Account implements Storable {
     }
     @Override
     public void unmarshal(String data) {
-
-        // menei keni giati ulopoieitai ston AccountManager
     }
 }

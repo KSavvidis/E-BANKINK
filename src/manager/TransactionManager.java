@@ -2,18 +2,14 @@ package manager;
 
 import model.Account;
 import model.BankAccount;
-import storage.FileStorageManager;
 import model.Bill;
-
 import java.io.*;
-import java.time.LocalDate;
 import java.util.*;
 
 public class TransactionManager {
     private  AccountManager accountManager;
     private  BillManager billManager;
     private final StatementManager statementManager = new StatementManager();
-    private final FileStorageManager storageManager = new FileStorageManager();
     private final String accountsFilePath = "data/accounts/accounts.csv";
 
     public TransactionManager(AccountManager accountManager, BillManager billManager) {
@@ -73,7 +69,6 @@ public class TransactionManager {
     }
 
     public void performTransfer(Account senderAccount, Scanner sc) {
-        //idio opws deposit
 
         if (senderAccount == null) {
             System.out.println("Sender account not found.");
@@ -124,7 +119,7 @@ public class TransactionManager {
         System.out.printf("Transferred %.2f successfully to %s.\n", amount, recipientIban);
         System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
     }
-
+// kati na kanoume me autes edw
     public void performOrderTransfer(Account senderAccount, Account receiverAccount, double amount, String description) {
         if (senderAccount == null) {
             System.out.println("Sender account not found.");
@@ -171,7 +166,7 @@ public class TransactionManager {
         }
 
         if(senderAccount.getBalance() < amount) {
-            System.out.println("Insufficient balance.");
+            System.out.println("Transfer from: " + senderAccount.getIban() + " to " + receiverAccount.getIban() + " failed due to insufficient balance.");
             return false;
         }
         senderAccount.setBalance(senderAccount.getBalance() - amount);
@@ -188,10 +183,9 @@ public class TransactionManager {
         return true;
     }
 
-    public boolean performOrderPayment(Account chargeAccount, Bill bill) {
-
+    public boolean performOrderPayment(Account chargeAccount, Bill bill, double fee, String description) {
         if (chargeAccount.getBalance() < bill.getAmount()) {
-            System.out.println("Insufficient funds in the account:" + chargeAccount.getIban());
+            System.out.println("The payment for bill: " + bill.getPaymentCode() + " failed due to insufficient balance.");
             return false;
         }
 
@@ -276,15 +270,12 @@ public class TransactionManager {
         System.out.printf("Sender new balance: %.2f\n", senderAccount.getBalance());
     }
 
-    // enimerwsi tis grammis tou arxeiou mono tou account pou ekane login
     private void updateAccountInFile(Account updatedAccount) {
         List<String> updatedLines = new ArrayList<>();
 
-        //diavazei olo to arxeio
         try (BufferedReader reader = new BufferedReader(new FileReader(accountsFilePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                //allazei mono tin grammi tou logariasmou pou ekane login
                 if (line.contains("iban:" + updatedAccount.getIban())) {
                     updatedLines.add(updatedAccount.marshal());
                 } else {
@@ -296,7 +287,6 @@ public class TransactionManager {
             return;
         }
 
-        //eggrafi olwn twn grammwn pali sto arxeio
         try (PrintWriter writer = new PrintWriter(accountsFilePath)) {
             for (String l : updatedLines) {
                 writer.println(l);

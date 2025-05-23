@@ -1,12 +1,6 @@
 package manager;
 
 import model.Account;
-import model.BankAccount;
-import model.BusinessAccount;
-import transaction.DepositTransaction;
-import transaction.Transaction;
-import transaction.TransferTransaction;
-
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,14 +8,9 @@ import java.util.Map;
 public class TimeSimulator{
     private AccountManager accountManager;
     private BillManager billManager;
-    private final StatementManager statementManager = new StatementManager();
     private StandingOrderManager standingOrderManager;
     private LocalDate currentDate;
     private Map<Account, Double> monthlyRate = new HashMap<>();
-   /* public TimeSimulator(AccountManager accountManager, BillManager billManager){
-        this.accountManager = new AccountManager();
-        this.billManager = new BillManager();
-    }*/
 
     public TimeSimulator(AccountManager accountManager, BillManager billManager, StandingOrderManager standingOrderManager){
         this.accountManager = accountManager;

@@ -35,7 +35,7 @@ public class UserManager {
                 String[] parts = data.split(",");
 
                 for (String part : parts) {
-                    String[] keyValuePair = part.split(":", 2);  // xwrizoume to key kai to value
+                    String[] keyValuePair = part.split(":", 2);
                     if (keyValuePair.length == 2) {
                         String key = keyValuePair[0].trim();
                         String value = keyValuePair[1].trim();
@@ -85,7 +85,6 @@ public class UserManager {
             }
         };
 
-        // fortwsi apo to arxeio xristwn
         storageManager.load(loader, "data/users/users.csv");
     }
 
@@ -98,7 +97,6 @@ public class UserManager {
         System.out.print("Password: ");
         String bufferPassword = sc.next();
 
-        // Fortwnoume tous xristes apo to arxeio an den exoun idi fortwthei
         if (users.isEmpty()) {
             loadUsers();
         }
@@ -113,10 +111,6 @@ public class UserManager {
 
         System.out.println("Authentication failed. Invalid username or password.");
         return null;
-    }
-
-    public List<User> getAllUsers() {
-        return users;
     }
 
     public void showCustomers(Scanner sc){
@@ -216,18 +210,6 @@ public class UserManager {
             default:
                 return null;
         }
-    }
-
-    private Map<String, String> parseLine(String line) {
-        Map<String, String> map = new HashMap<>();
-        String[] parts = line.split(",");
-        for (String part : parts) {
-            String[] keyValue = part.split(":");
-            if (keyValue.length == 2) {
-                map.put(keyValue[0].trim(), keyValue[1].trim());
-            }
-        }
-        return map;
     }
 
     public Customer findCustomerByVAT(String vatNumber) {

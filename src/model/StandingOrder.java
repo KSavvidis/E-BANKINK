@@ -1,11 +1,6 @@
 package model;
 
-
-import storage.Storable;
-import transaction.Transaction;
-
 import java.time.LocalDate;
-import java.util.List;
 
 public abstract class StandingOrder{
     private String type;
@@ -32,14 +27,6 @@ public abstract class StandingOrder{
         this.failedAttempts = 0;
     }
 
-
-    public boolean isActiveOn(LocalDate date) {
-        if((startDate.isBefore(date) || startDate.isEqual(date)) && (endDate.isAfter(date) || endDate.isEqual(date))) {
-            return true;
-        }
-        return false;
-    }
-
     public String getType() {
         return type;
     }
@@ -47,34 +34,8 @@ public abstract class StandingOrder{
         this.type = type;
 
     }
-
-    public String getTitle() {
-        return title;
-
-    }
-    public void setTitle(String title) {
-        this.title = title;
-
-    }
-
-    public void increaseFailedAttempts() {
-        failedAttempts++;
-    }
-    public int getFailedAttempts() {
-        return failedAttempts;
-    }
-
-    public boolean failedTooManyAttempts() {
-
-        return failedAttempts >= 3;
-    }
     public LocalDate getStartDate() {
         return startDate;
-    }
-
-    public void resetFailedAttempts() {
-
-        failedAttempts = 0;
     }
     public String getDescription() {
         return description;
@@ -89,10 +50,13 @@ public abstract class StandingOrder{
         return endDate;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     public Account getChargeAccount() {
         return chargeAccount;
     }
 
-    public abstract boolean execute();
-    public abstract LocalDate getNextExecutionDate(LocalDate currentDate);
+
 }

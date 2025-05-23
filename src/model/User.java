@@ -18,10 +18,6 @@ public abstract class User {
         return userName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
     public String getType() {
         return type;
     }
@@ -34,16 +30,8 @@ public abstract class User {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getLegalName() {
         return legalName;
-    }
-
-    public void setLegalName(String legalName) {
-        this.legalName = legalName;
     }
 
     public abstract String getVAT();

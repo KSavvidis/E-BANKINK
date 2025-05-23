@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 import model.Account;
-import model.BankAccount;
 import model.Customer;
 import model.User;
 import transaction.*;
@@ -74,9 +73,9 @@ public class Menu {
         int times = 3;
         while (!exit) {
             if(times != 0) {
-                User user = userManager.authenticate();//pairnei to type
+                User user = userManager.authenticate();
                 if (user != null) {
-                    switch (user.getType()) {//tsekarei to type
+                    switch (user.getType()) {
                         case "Individual":
                             exit = true;
                             showIndividualMenu(user, sc);
@@ -183,10 +182,16 @@ public class Menu {
             System.out.println("4. Payment");
             System.out.println("5. Back to Individual Menu");
             System.out.print("Enter your choice: ");
-
+            if(!sc.hasNextInt()) {
+                System.out.println("Invalid choice, please try again.");
+                continue;
+            }
             int choice = sc.nextInt();
             sc.nextLine();
-
+            Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
+            if (selectedAccount == null) {
+                continue;
+            }
             Transaction transaction = null;
             switch (choice) {
                 case 1:
@@ -211,10 +216,6 @@ public class Menu {
                 default:
                     System.out.println("Invalid choice. Try again.");
                     continue;
-            }
-            Account selectedAccount = accountManager.selectAccountByUser(sc, user.getVAT());
-            if (selectedAccount == null) {
-                continue;
             }
 
             if (transaction != null) {
@@ -262,9 +263,10 @@ public class Menu {
                         //standingOrderManager.ListStandingOrders();
                         break;
                     case 5:
-                        String VAT = "";
-                        Transaction transaction = null;
-                        Customer customer = null;
+                        //na to doume mhpws ginei methodos
+                        String VAT;
+                        Transaction transaction;
+                        Customer customer;
 
                         while (true) {
                             System.out.print("Please enter the company's VAT you want to view: ");
@@ -424,36 +426,6 @@ public class Menu {
         }
     }
 
-
-    private void showStandingOrderMenu(User user,Scanner sc){
-        boolean exit = false;
-        while(!exit) {
-            System.out.println("Standing Order Menu");
-            System.out.println("==================================");
-            System.out.println("1. Create Payment Standing Orders");
-            System.out.println("2. Create Transfer Standing Orders");
-            System.out.println("3. Back to Main Menu");
-            System.out.print("Enter your choice:");
-            int choice;
-            if (sc.hasNextInt()) {
-                choice = sc.nextInt();
-                sc.nextLine();
-                StandingOrderManager standingOrderManager = new StandingOrderManager();
-                switch (choice) {
-                    case 1:
-                        break;
-                    case 2:
-                        break;
-                    case 3:
-                        exit = true;
-                        break;
-                    default:
-                        System.out.println("Invalid choice. Try again.");
-                }
-            }
-        }
-    }
-
     private void showCompanyBillsMenu(Scanner sc){
         BillManager billManager = new BillManager();
         UserManager userManager = new UserManager();
@@ -461,19 +433,19 @@ public class Menu {
 
         System.out.println("\nCompany bills menu");
         System.out.println("===================================");
-
+// na to fftiajoume pio wraia
         String VAT = "";
         while (VAT.isEmpty()) {
             System.out.print("Please enter the company's VAT you want to view: ");
-            VAT = sc.nextLine().trim();
-
+            VAT = sc.next();
+            sc.nextLine();
             if (VAT.isEmpty()) {
                 System.out.println("VAT cannot be empty. Please try again.");
             }
 
             if (userManager.findCustomerByVAT(VAT) == null) {
                 System.out.println("No company found with this VAT. Please try again.");
-                continue;
+                VAT = "";
             }
         }
         boolean exit = false;

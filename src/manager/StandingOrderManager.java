@@ -3,17 +3,14 @@ package manager;
 import model.*;
 import storage.FileStorageManager;
 import storage.Storable;
-
-import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 public class StandingOrderManager {
-    private String standingOrdersFilePath = "data/orders/active.csv";
+    private final String standingOrdersFilePath = "data/orders/active.csv";
     private FileStorageManager storageManager;
     private List<StandingOrder> standingOrders = new ArrayList<>();
-    private String issuedFilePath = "data/bills/issued.csv";
     private List<FailedOrder> failedOrders = new ArrayList<>();
     public StandingOrderManager() {
         storageManager = new FileStorageManager();
@@ -35,7 +32,7 @@ public class StandingOrderManager {
                 String[] parts = data.split(",");
 
                 for (String part : parts) {
-                    String[] keyValuePair = part.split(":", 2);  // xwrizoume to key kai to value
+                    String[] keyValuePair = part.split(":", 2);
                     if (keyValuePair.length == 2) {
                         String key = keyValuePair[0].trim();
                         String value = keyValuePair[1].trim();
@@ -88,7 +85,6 @@ public class StandingOrderManager {
             }
         };
 
-        // fortwsi apo to arxeio xristwn
         storageManager.load(loader, standingOrdersFilePath);
     }
 
@@ -96,7 +92,6 @@ public class StandingOrderManager {
         AccountManager accountManager = new AccountManager();
         BillManager billManager = new BillManager();
         TransactionManager transactionManager = new TransactionManager(accountManager, billManager);
-        List<Bill> duePayments = new ArrayList<>();
 
         Set<String> failedOrderIds = new HashSet<>();
         for (FailedOrder failedOrder : failedOrders) {
@@ -105,7 +100,6 @@ public class StandingOrderManager {
                 failedOrderIds.add(order.getOrderID());
             }
         }
-
         List<StandingOrder> successfulOrders = new ArrayList<>();
         for (StandingOrder order : standingOrders) {
             if (!failedOrderIds.contains(order.getOrderID())) {
@@ -116,10 +110,15 @@ public class StandingOrderManager {
 
         for(StandingOrder standingOrder : standingOrders){
             if(standingOrder instanceof PaymentOrder){
-                duePayments = billManager.findForRF(((PaymentOrder) standingOrder).getPaymentCode());
+                List<Bill> duePayments = billManager.findForRF(((PaymentOrder) standingOrder).getPaymentCode());
                 for(Bill bill : duePayments){
-                    if(!transactionManager.performOrderPayment(standingOrder.getChargeAccount(), bill)){
-                        FailedOrder failed = new FailedOrder((PaymentOrder)standingOrder);
+                    if(((PaymentOrder) standingOrder).getMaxAmount()<bill.getAmount())
+                        continue;
+                    if(!transactionManager.performOrderPayment(standingOrder.getChargeAccount()
+                            , bill
+                            , standingOrder.getFee()
+                            , standingOrder.getDescription())){
+                        FailedOrder failed = new FailedOrder(standingOrder);
                         failed.increaseCurrentTry();
                         failedOrders.add(failed);
                         failed.setLastAttemptDate(currentDate);
@@ -132,7 +131,7 @@ public class StandingOrderManager {
     public void failedForPayment(LocalDate currentDate) {
         TransactionManager transactionManager = new TransactionManager();
         BillManager billManager = new BillManager();
-        List<Bill> duePayments = new ArrayList<>();
+        List<Bill> duePayments;
         for(FailedOrder failedOrder : failedOrders){
             if(failedOrder.getOrder() instanceof TransferOrder){
                 continue;
@@ -143,14 +142,18 @@ public class StandingOrderManager {
                 if(failedOrder.OverFailedAttempts())
                     continue;
                 if(failedOrder.getLastAttemptDate().equals(currentDate))
-                if(!transactionManager.performOrderPayment(paymentOrder.getChargeAccount(), bill)){
+                    continue;
+                if(!transactionManager.performOrderPayment(paymentOrder.getChargeAccount()
+                        , bill
+                        , paymentOrder.getFee()
+                        , paymentOrder.getDescription())){
                     failedOrder.increaseCurrentTry();
+                    failedOrder.setLastAttemptDate(currentDate);
                 }
                 else{
                     failedOrders.remove(failedOrder);
                 }
             }
-
         }
     }
 
@@ -160,18 +163,16 @@ public class StandingOrderManager {
             if(failedOrder.getOrder() instanceof PaymentOrder)
                 continue;
             TransferOrder transferOrder = (TransferOrder) failedOrder.getOrder();
-            if(failedOrder.OverFailedAttempts()) {
-                System.out.println(failedOrder.getCurrentTry());
+            if(failedOrder.OverFailedAttempts())
                 continue;
-            }
-            System.out.println(failedOrder.getLastAttemptDate().toString());
-            System.out.println("current try tou transfer sto failed" + failedOrder.getCurrentTry());
+
             if(!failedOrder.getLastAttemptDate().equals(currentDate)) {
                 if (!transactionManager.performOrderTransfers(transferOrder.getChargeAccount()
                         , transferOrder.getCreditAccount()
-                        , transferOrder.getAmount()
+                        , transferOrder.getAmount() + transferOrder.getFee()
                         , transferOrder.getDescription())) {
                     failedOrder.increaseCurrentTry();
+                    failedOrder.setLastAttemptDate(currentDate);
                 } else {
                     failedOrders.remove(failedOrder);
                 }
@@ -192,11 +193,10 @@ public class StandingOrderManager {
                             ((TransferOrder) standingOrder).getFrequencyInMonths()) == 0){
                        if(!transactionManager.performOrderTransfers(standingOrder.getChargeAccount()
                                                                 , transferOrder.getCreditAccount()
-                                                                , transferOrder.getAmount()
+                                                                , transferOrder.getAmount() + transferOrder.getFee()
                                                                 , standingOrder.getDescription())){
                            FailedOrder failed = new FailedOrder(standingOrder);
                            failed.increaseCurrentTry();
-                           System.out.println(failed.getCurrentTry());
                            failedOrders.add(failed);
                            failed.setLastAttemptDate(currentDate);
                         }
@@ -208,9 +208,36 @@ public class StandingOrderManager {
 
     public void resetCounter(LocalDate currentDate){
         for(FailedOrder failedOrder : failedOrders){
-            failedOrder.resetCurrentTry();
+            if(failedOrder.getOrder() instanceof TransferOrder) {
+                if (currentDate.isEqual(failedOrder.getLastAttemptDate().plusMonths(((TransferOrder) failedOrder.getOrder()).getFrequencyInMonths()))) {
+                    failedOrder.resetCurrentTry();
+                }
+            }
         }
-
     }
 
+    public void listStandingOrders(Scanner sc) {
+        if (standingOrders.isEmpty()) {
+            System.out.println("No standing orders found.");
+            return;
+        }
+
+        System.out.println("Standing orders: ");
+        int i = 1;
+        for(StandingOrder order : standingOrders) {
+            System.out.printf("%d. Type: %s\t OrderId: %s\t Charge Account:%s\t VAT of customer:%s\t Title:%s\t StartDate:%s\t DueDate:%s\n", i
+                    ,order.getType()
+                    ,order.getOrderID()
+                    ,order.getChargeAccount().getIban()
+                    ,order.getChargeAccount().getPrimaryOwner().getVAT()
+                    ,order.getTitle()
+                    ,order.getStartDate()
+                    ,order.getEndDate());
+
+            i++;
+        }
+        System.out.println("Press any key to continue...");
+        sc.nextLine();
+        sc.nextLine();
+    }
 }

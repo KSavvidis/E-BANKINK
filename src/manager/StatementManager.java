@@ -1,9 +1,6 @@
 package manager;
 
 import model.Account;
-import model.Bill;
-import transaction.Transaction;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,9 +35,9 @@ public class StatementManager {
     }
 
     public void recordTransaction(Account account, String type, double amount) {
-        TimeSimulator timeSimulator = new TimeSimulator();
+        //na baloume to currentDate san parametro kai nallajoume oles tis transaction manager
         String transactionRecord = String.format("%s,%s,%.2f,%.2f\n",
-                LocalDate.now().toString(),
+                LocalDate.now(),
                 type,
                 amount,
                 account.getBalance()

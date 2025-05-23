@@ -11,7 +11,4 @@ public abstract class Customer extends User {
         return VAT;
     }
 
-    public void setVAT(String VAT) {
-        this.VAT = VAT;
-    }
 }

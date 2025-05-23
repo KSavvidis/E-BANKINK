@@ -3,7 +3,7 @@ package model;
 import java.time.LocalDate;
 
 public class FailedOrder {
-    private final int maxTries = 2;
+    private final int maxTries = 3;
     private int currentTry = 0;
     private StandingOrder order;
     private LocalDate lastAttemptDate = null;
@@ -25,9 +25,6 @@ public class FailedOrder {
         this.currentTry++;
     }
 
-    public int getCurrentTry() {
-        return currentTry;
-    }
     public StandingOrder getOrder() {
         return order;
     }

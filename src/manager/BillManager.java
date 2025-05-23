@@ -47,7 +47,6 @@ public class BillManager {
         File billFile = new File(billsFolderPath + filename);
 
         if (!billFile.exists()) {
-            System.out.println("No bills found today.");
             return;
         }
 
@@ -79,7 +78,7 @@ public class BillManager {
                 }
             }
         };
-
+        System.out.println("Loading bills for today.");
         storageManager.load(loader, billsFolderPath + filename);
     }
 
@@ -357,7 +356,6 @@ public class BillManager {
     public void loadBillsFromIssuedToPaidFile(String rf) {
         List<String> nonPaidBills = new ArrayList<>();
         List<String> paidBills = new ArrayList<>();
-        System.out.println("****");
         Storable processor = new Storable() {
             @Override
             public String marshal() { return null; }
@@ -392,4 +390,10 @@ public class BillManager {
             writeFile(issuedFilePath, nonPaidBills);
         }
     }
+    public boolean hasBillsForDate(LocalDate date) {
+        String filename = date.toString() + ".csv";
+        File billFile = new File(billsFolderPath + filename);
+        return billFile.exists();
+    }
+
 }

@@ -1,7 +1,6 @@
 package transaction;
 
 import java.util.Scanner;
-import manager.AccountManager;
 import manager.TransactionManager;
 import model.Account;
 
