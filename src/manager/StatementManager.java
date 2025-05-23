@@ -17,9 +17,6 @@ private final String failedOrdersFilePath = "data/orders/failed.csv";
     public void initializeStatementFiles(List<Account> accounts) {
         File folder = new File("data/statements");
 
-
-
-
         for (Account account : accounts) {
             String iban = account.getIban();
             File file = new File(folder, iban + ".csv");
@@ -78,11 +75,12 @@ private final String failedOrdersFilePath = "data/orders/failed.csv";
         try{
             File file = new File(failedOrdersFilePath);
             if (!file.exists()) {
+                file.createNewFile();
                 System.out.println("Error creating file: " + failedOrdersFilePath);
                 return;
             }
             try(FileWriter writer = new FileWriter(file, true)){
-                writer.write(content + "/n");
+                writer.write(content + "\n");
             }
         }
         catch (Exception e){
