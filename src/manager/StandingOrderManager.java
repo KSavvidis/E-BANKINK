@@ -3,20 +3,36 @@ package manager;
 import model.*;
 import storage.FileStorageManager;
 import storage.Storable;
+
+import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
 
 
 public class StandingOrderManager {
     private final String standingOrdersFilePath = "data/orders/active.csv";
+    private final String expiredStandingOrdersFilePath = "data/orders/expired.csv";
     private FileStorageManager storageManager;
     private List<StandingOrder> standingOrders = new ArrayList<>();
     private List<FailedOrder> failedOrders = new ArrayList<>();
     public StandingOrderManager() {
         storageManager = new FileStorageManager();
         loadStandingOrders();
+        createFileIfNotExists(expiredStandingOrdersFilePath);
     }
 
+    public void createFileIfNotExists(String filePath) {
+        File file = new File(filePath);
+
+        if(!file.exists()) {
+            try {
+                file.createNewFile();
+            }
+            catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
     public void loadStandingOrders() {
 
         Storable loader = new Storable() {
